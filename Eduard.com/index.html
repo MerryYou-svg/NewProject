@@ -5,457 +5,314 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EDS - Eduard Distribution Supplies</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .modal { transition: opacity 0.25s ease; }
+    body { background-color: #f3f4f6; }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+<body class="text-gray-800 antialiased font-sans">
 
-  <!-- TOP NAVIGATION BAR -->
-  <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3 font-extrabold text-xl sm:text-2xl tracking-wide">
-        <div class="bg-amber-400 text-indigo-950 px-2.5 py-1 rounded-xl flex items-center justify-center font-black text-lg shadow-inner">
-          EDS
-        </div>
-        <div class="flex flex-col leading-tight">
-          <span class="text-white text-base sm:text-lg">Eduard Distribution</span>
-          <span class="text-amber-400 text-[10px] sm:text-xs font-semibold tracking-widest uppercase">Supplies</span>
-        </div>
-      </div>
-      <div id="user-session-info" class="hidden items-center gap-4">
-        <div class="text-right">
-          <p id="nav-user-name" class="text-xs font-bold text-gray-200">User Name</p>
-          <span id="nav-user-role" class="text-[10px] font-bold uppercase bg-amber-400 text-indigo-950 px-2 py-0.5 rounded-full">Role</span>
-        </div>
-        <button type="button" onclick="window.app.logout()" class="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition shadow flex items-center gap-1 text-xs font-bold">
-          <i data-lucide="log-out" class="w-4 h-4"></i> Log Out
-        </button>
-      </div>
-    </div>
-  </header>
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-gray-900 text-white px-5 py-3 rounded-lg shadow-xl text-sm font-medium"></div>
 
-  <!-- ALERT NOTIFICATION CONTAINER -->
-  <div id="global-toast" class="fixed top-20 right-4 z-50 hidden max-w-sm bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-gray-700 flex items-center gap-3 text-sm">
-    <i data-lucide="bell" class="w-5 h-5 text-amber-400 shrink-0"></i>
-    <span id="toast-message">Notification message</span>
-  </div>
+  <!-- Main Container -->
+  <div id="app" class="min-h-screen flex flex-col">
 
-  <!-- CART MODAL -->
-  <div id="cart-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh]">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h3 class="font-black text-gray-800 text-lg flex items-center gap-2">
-          <i data-lucide="shopping-cart" class="w-5 h-5 text-amber-500"></i> Shopping Cart
-        </h3>
-        <button type="button" onclick="window.app.closeCartModal()" class="text-gray-400 hover:text-rose-600"><i data-lucide="x" class="w-6 h-6"></i></button>
-      </div>
-      <div id="cart-item-list" class="space-y-3 overflow-y-auto my-2 pr-1 flex-grow divide-y">
-        <!-- Rendered dynamically -->
-      </div>
-      <div class="border-t pt-4 mt-2">
-        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex justify-between items-center mb-4">
-          <span class="text-xs font-bold text-amber-900">Total Cart Amount:</span>
-          <span id="cart-total-price" class="text-lg font-black text-indigo-700">₱ 0.00</span>
+    <!-- TOP NAVIGATION -->
+    <header class="bg-indigo-700 text-white shadow-md">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <i class="fa-solid fa-boxes-packing text-2xl"></i>
+          <div>
+            <h1 class="text-xl font-bold leading-tight">EDS Store</h1>
+            <p class="text-xs text-indigo-200">Eduard Distribution Supplies</p>
+          </div>
         </div>
-        <button type="button" onclick="window.app.proceedToCheckoutFromCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
-          <i data-lucide="credit-card" class="w-5 h-5"></i> Proceed to Checkout
-        </button>
+
+        <div id="user-info" class="flex items-center space-x-4">
+          <!-- Rendered dynamically -->
+        </div>
       </div>
-    </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+      <!-- LOGIN / REGISTER CONTAINER -->
+      <div id="auth-container" class="max-w-md mx-auto my-12 bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <!-- Auth Tabs -->
+        <div class="flex border-b mb-6">
+          <button id="tab-login" onclick="app.switchAuthTab('login')" class="flex-1 py-2 font-semibold text-center border-b-2 border-indigo-600 text-indigo-600">Log In</button>
+          <button id="tab-register" onclick="app.switchAuthTab('register')" class="flex-1 py-2 font-semibold text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700">Register</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="form-login" onsubmit="app.handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <input type="email" id="login-email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="login-pass" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg shadow transition">Sign In</button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="form-register" onsubmit="app.handleRegister(event)" class="space-y-4 hidden">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input type="text" id="reg-name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <input type="email" id="reg-email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="reg-pass" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Account Role</label>
+            <select id="reg-role" onchange="app.toggleLocationField()" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="Client">Client</option>
+              <option value="Worker">Worker</option>
+              <option value="Owner">Owner</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">* Note: Maximum of 2 Worker accounts only (Worker 1 & Worker 2).</p>
+          </div>
+          <div id="location-field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Address <span class="text-red-500">*</span></label>
+            <textarea id="reg-location" rows="2" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Barangay, City, Street / Landmarks"></textarea>
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg shadow transition">Create Account</button>
+        </form>
+      </div>
+
+      <!-- MAIN DASHBOARD (Hidden until logged in) -->
+      <div id="dashboard" class="hidden space-y-8">
+        
+        <!-- SECTION: PRODUCTS LIST -->
+        <section class="bg-white rounded-xl shadow p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center space-x-2">
+              <i class="fa-solid fa-store text-indigo-600"></i>
+              <span>Available Inventory Products</span>
+            </h2>
+            <button id="btn-add-product" onclick="app.openAddProductModal()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition">
+              <i class="fa-solid fa-plus mr-1"></i> Add Product
+            </button>
+          </div>
+
+          <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- SECTION: CLIENT CART & ACTIVE ORDERS -->
+        <section id="client-section" class="hidden space-y-6">
+          
+          <!-- CART SUMMARY -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+              <i class="fa-solid fa-cart-shopping text-indigo-600"></i>
+              <span>Your Shopping Cart</span>
+            </h2>
+            <div id="cart-items" class="divide-y mb-4">
+              <!-- Cart Items -->
+            </div>
+            
+            <div class="border-t pt-4 flex flex-col md:flex-row justify-between items-center gap-4">
+              <div class="text-lg font-bold">
+                Total: ₱<span id="cart-total">0.00</span>
+              </div>
+              <button onclick="app.openCheckoutModal()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-semibold shadow">
+                Proceed to Checkout
+              </button>
+            </div>
+          </div>
+
+          <!-- CLIENT ACTIVE ORDERS -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+              <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+              <span>Active Order Tracking</span>
+            </h2>
+            <div id="client-active-orders" class="space-y-4">
+              <!-- Active orders list -->
+            </div>
+          </div>
+
+          <!-- CLIENT SEPARATE ORDER HISTORY -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-bold text-gray-800 flex items-center space-x-2">
+                <i class="fa-solid fa-receipt text-emerald-600"></i>
+                <span>Order History (Completed / Cancelled)</span>
+              </h2>
+            </div>
+            <div id="client-order-history" class="space-y-4">
+              <!-- History list -->
+            </div>
+          </div>
+
+        </section>
+
+        <!-- SECTION: WORKER / OWNER ORDERS MANAGEMENT -->
+        <section id="admin-orders-section" class="hidden bg-white rounded-xl shadow p-6">
+          <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+            <i class="fa-solid fa-list-check text-indigo-600"></i>
+            <span>Order Processing & Fulfillment</span>
+          </h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-gray-100 text-gray-700 uppercase">
+                <tr>
+                  <th class="p-3">Order ID</th>
+                  <th class="p-3">Client Name</th>
+                  <th class="p-3">Address</th>
+                  <th class="p-3">Assigned Worker</th>
+                  <th class="p-3">Total Amount</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-table" class="divide-y">
+                <!-- Orders table rows -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
   </div>
 
   <!-- CHECKOUT MODAL -->
-  <div id="checkout-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h3 class="font-black text-gray-800 text-lg flex items-center gap-2">
-          <i data-lucide="check-square" class="w-5 h-5 text-amber-500"></i> Confirm Order
-        </h3>
-        <button type="button" onclick="window.app.closeCheckoutModal()" class="text-gray-400 hover:text-rose-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+  <div id="modal-checkout" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-bold text-gray-900 border-b pb-2">Complete Order Checkout</h3>
+      
+      <div>
+        <label class="block text-sm font-medium mb-1">Assigned Worker to Process Order:</label>
+        <select id="checkout-worker" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          <option value="Worker 1">Worker 1</option>
+          <option value="Worker 2">Worker 2</option>
+        </select>
+        <p class="text-xs text-gray-500 mt-1">Select which worker should handle and fulfill your order.</p>
       </div>
-      <div id="modal-delivery-address" class="bg-slate-50 p-3 rounded-2xl border mb-4 hidden">
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Delivery Address:</p>
-        <p id="client-address-text" class="text-xs font-bold text-gray-700 mt-0.5">Location details...</p>
-      </div>
-      <div id="checkout-summary-list" class="space-y-2 max-h-32 overflow-y-auto mb-4 divide-y text-sm">
-        <!-- Summary items -->
-      </div>
-      <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex justify-between items-center mb-4">
-        <span class="text-xs font-bold text-amber-900">Total Amount to Pay:</span>
-        <span id="checkout-total-price" class="text-lg font-black text-indigo-700">₱ 0.00</span>
-      </div>
-      <div class="mb-4">
-        <label class="block text-xs font-black text-indigo-900 mb-1">Assign Order to Worker:</label>
-        <select id="select-worker-assign" class="w-full px-3 py-2 bg-indigo-50 border-2 border-indigo-200 rounded-xl text-xs font-black text-indigo-950 outline-none focus:border-indigo-600">
-          <option value="Worker 1" class="font-black text-gray-900">Worker 1</option>
-          <option value="Worker 2" class="font-black text-gray-900">Worker 2</option>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Payment Method:</label>
+        <select id="checkout-payment" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+          <option value="Cash on Delivery">Cash on Delivery (COD)</option>
+          <option value="GCash">GCash</option>
         </select>
       </div>
-      <div class="mb-6">
-        <label class="block text-xs font-bold text-gray-700 mb-2">Payment Method:</label>
-        <div class="border rounded-2xl p-3 flex items-center gap-2 bg-indigo-50/50 border-indigo-200">
-          <input type="radio" name="payment-method" value="COD" checked class="accent-indigo-600">
-          <span class="text-xs font-bold text-indigo-900">💵 Cash on Delivery (COD)</span>
-        </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Delivery Address:</label>
+        <textarea id="checkout-address" rows="2" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
       </div>
-      <button type="button" onclick="window.app.confirmPayment()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
-        <i data-lucide="check-circle" class="w-5 h-5"></i> Place Order Now
-      </button>
+
+      <div class="flex justify-end space-x-3 pt-3 border-t">
+        <button onclick="app.closeCheckoutModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium">Cancel</button>
+        <button onclick="app.submitOrder()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">Place Order</button>
+      </div>
     </div>
   </div>
 
-  <main class="flex-grow flex flex-col">
-    <!-- LOGIN & REGISTER SECTION -->
-    <section id="page-login" class="flex-grow flex items-center justify-center p-4 bg-gradient-to-br from-indigo-800 via-indigo-900 to-slate-900">
-      <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
-        <div class="h-2 bg-gradient-to-r from-amber-400 via-orange-500 to-indigo-600 absolute top-0 left-0 right-0"></div>
-        <div class="text-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Welcome!</h2>
-          <p class="text-xs text-gray-500 mt-1">Select an account type or register to access the system.</p>
-        </div>
-        <form id="register-form" onsubmit="window.app.register(event)" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
-            <input type="text" id="reg-name" placeholder="Full Name" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
-            <input type="email" id="reg-email" placeholder="email@example.com" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
-            <input type="password" id="reg-pass" placeholder="••••••••" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Select Account Type (Role)</label>
-            <select id="reg-role" onchange="window.app.onRoleChange(this.value)" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none font-medium">
-              <option value="" disabled selected>-- Select Role --</option>
-              <option value="client">Client (Max 100 Accounts)</option>
-              <option value="worker">Worker (Max 2 Accounts)</option>
-              <option value="owner">Owner (Max 1 Account)</option>
-            </select>
-          </div>
-          <div id="location-field-container" class="hidden transition-all duration-300">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Delivery Location / Complete Address</label>
-            <input type="text" id="reg-location" placeholder="Street, Barangay, City/Province" class="w-full px-4 py-2.5 bg-amber-50/50 border border-amber-200 rounded-xl text-sm outline-none focus:border-amber-500">
-          </div>
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> Create Account
-          </button>
-        </form>
-
-        <form id="login-form" onsubmit="window.app.login(event)" class="space-y-4 hidden">
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
-            <input type="email" id="login-email" placeholder="email@example.com" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
-            <input type="password" id="login-pass" placeholder="••••••••" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          </div>
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
-            <i data-lucide="log-in" class="w-4 h-4"></i> Log In
-          </button>
-        </form>
-
-        <div class="mt-6 text-center text-xs text-gray-500 pt-4 border-t">
-          <span id="to-login-txt">Already have an account? <button type="button" onclick="window.app.toggleAuthForms('login')" class="text-indigo-600 font-bold underline">Log In Here</button></span>
-          <span id="to-reg-txt" class="hidden">Don't have an account? <button type="button" onclick="window.app.toggleAuthForms('register')" class="text-indigo-600 font-bold underline">Create Account Here</button></span>
-        </div>
+  <!-- ADD PRODUCT MODAL (Owner) -->
+  <div id="modal-add-product" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-bold text-gray-900 border-b pb-2">Add New Inventory Item</h3>
+      <div>
+        <label class="block text-sm font-medium mb-1">Product Name</label>
+        <input type="text" id="prod-name" class="w-full p-2 border rounded-lg outline-none">
       </div>
-    </section>
-
-    <!-- CLIENT DASHBOARD -->
-    <section id="page-client" class="hidden flex-col w-full max-w-7xl mx-auto px-4 py-6">
-      <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 text-white mb-6 shadow-lg flex justify-between items-center">
+      <div class="grid grid-cols-2 gap-3">
         <div>
-          <h1 class="text-2xl font-black">EDS Store Online 🛒</h1>
-          <p class="text-xs text-amber-100 mt-1">Add items to your cart or click Buy Now for instant purchase.</p>
+          <label class="block text-sm font-medium mb-1">Price (₱)</label>
+          <input type="number" step="0.01" id="prod-price" class="w-full p-2 border rounded-lg outline-none">
         </div>
-        <button type="button" onclick="window.app.openCartModal()" class="bg-white text-indigo-900 font-black px-4 py-2.5 rounded-2xl shadow hover:bg-amber-100 transition flex items-center gap-2">
-          <i data-lucide="shopping-cart" class="w-5 h-5 text-amber-600"></i>
-          <span>View Cart (<span id="cart-count">0</span>)</span>
-        </button>
-      </div>
-      <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <i data-lucide="grid" class="w-5 h-5 text-amber-500"></i> Available Supplies
-      </h2>
-      <div id="client-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <!-- Products -->
-      </div>
-    </section>
-
-    <!-- WORKER DASHBOARD -->
-    <section id="page-worker" class="hidden flex-col w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <div class="bg-emerald-700 text-white p-6 rounded-3xl shadow-lg flex justify-between items-center">
         <div>
-          <h1 class="text-2xl font-black">Worker Dashboard & Orders 📦</h1>
-          <p class="text-xs text-emerald-200 mt-1">Orders & Manual Sales automatically reset after 7 days.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <label class="text-xs font-extrabold text-emerald-100">Active Worker Profile:</label>
-          <select id="worker-filter-select" disabled class="bg-emerald-950 text-amber-300 border-2 border-emerald-500 text-xs px-3 py-1.5 rounded-xl font-black outline-none opacity-100 shadow">
-            <option value="Worker 1" class="font-black">Worker 1</option>
-            <option value="Worker 2" class="font-black">Worker 2</option>
-          </select>
+          <label class="block text-sm font-medium mb-1">Initial Stock</label>
+          <input type="number" id="prod-stock" class="w-full p-2 border rounded-lg outline-none">
         </div>
       </div>
-
-      <div class="bg-white p-6 rounded-3xl border shadow-sm border-indigo-100">
-        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i> Delivery & Sales History (7-Day Auto Reset)
-        </h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase border-b font-extrabold">
-              <tr>
-                <th class="p-3">Client / Type</th>
-                <th class="p-3">Delivery Address</th>
-                <th class="p-3">Ordered Items</th>
-                <th class="p-3">Total Amount</th>
-                <th class="p-3">Payment Method</th>
-                <th class="p-3 text-center">Action / Status</th>
-              </tr>
-            </thead>
-            <tbody id="worker-orders-table" class="divide-y">
-              <!-- Rendered -->
-            </tbody>
-          </table>
-        </div>
+      <div class="flex justify-end space-x-3 pt-3 border-t">
+        <button onclick="app.closeAddProductModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium">Cancel</button>
+        <button onclick="app.submitNewProduct()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium">Save Product</button>
       </div>
+    </div>
+  </div>
 
-      <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-base font-bold text-gray-800 mb-4">Stock Adjustments & Manual Sales Input</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
-              <tr>
-                <th class="p-3">Product Item</th>
-                <th class="p-3">Price</th>
-                <th class="p-3">Stock Remaining</th>
-                <th class="p-3">Daily Units Sold</th>
-                <th class="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody id="worker-inventory-table" class="divide-y">
-              <!-- Rendered -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- OWNER DASHBOARD -->
-    <section id="page-owner" class="hidden flex-col w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <div class="bg-indigo-950 text-white p-6 rounded-3xl shadow-lg flex justify-between items-center">
-        <div>
-          <h1 class="text-2xl font-black">Owner Master Dashboard 👑</h1>
-          <p class="text-xs text-indigo-300 mt-1">All Sales for <b>Worker 1</b> & <b>Worker 2</b> auto reset after 14 days.</p>
-        </div>
-        <span class="bg-amber-400 text-indigo-950 text-xs font-black px-3 py-1.5 rounded-xl">Admin Access</span>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-emerald-100 flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">Grand Sales Revenue</p>
-            <h3 id="owner-total-sales" class="text-2xl font-black text-emerald-600 mt-1">₱ 0.00</h3>
-          </div>
-          <div class="p-3 bg-emerald-50 rounded-2xl text-emerald-600"><i data-lucide="dollar-sign" class="w-6 h-6"></i></div>
-        </div>
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-indigo-100 flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">Total Sold Items</p>
-            <h3 id="owner-items-sold" class="text-2xl font-black text-indigo-600 mt-1">0 Units</h3>
-          </div>
-          <div class="p-3 bg-indigo-50 rounded-2xl text-indigo-600"><i data-lucide="shopping-cart" class="w-6 h-6"></i></div>
-        </div>
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold text-gray-400 uppercase">Total Remaining Stock</p>
-            <h3 id="owner-total-stock" class="text-2xl font-black text-amber-600 mt-1">0 Units</h3>
-          </div>
-          <div class="p-3 bg-amber-50 rounded-2xl text-amber-600"><i data-lucide="layers" class="w-6 h-6"></i></div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- WORKER 1 CARD -->
-        <div class="bg-white p-5 rounded-3xl border-2 shadow-sm border-blue-200">
-          <div class="flex justify-between items-center border-b pb-3 mb-3">
-            <div>
-              <h3 class="font-black text-blue-950 text-lg flex items-center gap-2">
-                <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> Worker 1
-              </h3>
-              <p class="text-[11px] font-bold text-blue-600">Sales Record (14-Day Reset)</p>
-            </div>
-            <span id="w1-total-sales" class="bg-blue-100 text-blue-900 font-black text-xs px-3 py-1.5 rounded-full border border-blue-300">Total: ₱ 0.00</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-blue-50 text-blue-900 uppercase font-black">
-                <tr>
-                  <th class="p-2">Client / Type</th>
-                  <th class="p-2">Items</th>
-                  <th class="p-2">Amount</th>
-                  <th class="p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody id="owner-worker1-table" class="divide-y font-semibold">
-                <!-- Worker 1 Data -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- WORKER 2 CARD -->
-        <div class="bg-white p-5 rounded-3xl border-2 shadow-sm border-purple-200">
-          <div class="flex justify-between items-center border-b pb-3 mb-3">
-            <div>
-              <h3 class="font-black text-purple-950 text-lg flex items-center gap-2">
-                <i data-lucide="user-check" class="w-5 h-5 text-purple-600"></i> Worker 2
-              </h3>
-              <p class="text-[11px] font-bold text-purple-600">Sales Record (14-Day Reset)</p>
-            </div>
-            <span id="w2-total-sales" class="bg-purple-100 text-purple-900 font-black text-xs px-3 py-1.5 rounded-full border border-purple-300">Total: ₱ 0.00</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-purple-50 text-purple-900 uppercase font-black">
-                <tr>
-                  <th class="p-2">Client / Type</th>
-                  <th class="p-2">Items</th>
-                  <th class="p-2">Amount</th>
-                  <th class="p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody id="owner-worker2-table" class="divide-y font-semibold">
-                <!-- Worker 2 Data -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add New Product
-        </h2>
-        <form onsubmit="window.app.addProduct(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <input type="text" id="prod-name" placeholder="Item Name" required class="px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          <input type="number" id="prod-price" min="1" placeholder="Price (₱)" required class="px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          <input type="number" id="prod-stock" min="1" placeholder="Initial Stock" required class="px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition">Add Product</button>
-        </form>
-      </div>
-
-      <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-base font-bold text-gray-800 mb-4">Monthly Inventory Breakdown</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
-              <tr>
-                <th class="p-3">Product Item</th>
-                <th class="p-3">Unit Price</th>
-                <th class="p-3">Units Sold</th>
-                <th class="p-3">Stock Left</th>
-                <th class="p-3">Generated Revenue</th>
-                <th class="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody id="owner-inventory-table" class="divide-y">
-              <!-- Rendered -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </main>
-
+  <!-- APPLICATION SCRIPT -->
   <script>
     const app = {
-        API_BASE_URL: 'https://eds-backend-jo6g.onrender.com', 
-
-      cart: [],
-      activeCheckoutItems: [],
+      API_BASE_URL: 'https://eds-backend-jo6g.onrender.com',
+      currentUser: null,
       products: [],
       orders: [],
+      cart: [],
 
-      init: async function() {
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-        await this.fetchServerData();
-        
-        const activeUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (activeUser) {
-          this.navigateTo(activeUser.role);
+      init: function() {
+        const savedUser = localStorage.getItem('eds_user');
+        if (savedUser) {
+          this.currentUser = JSON.parse(savedUser);
+          this.renderHeader();
+          this.showDashboard();
+          this.fetchServerData();
         } else {
-          this.navigateTo('login');
-        }
-      },
-
-      fetchServerData: async function() {
-        try {
-          const [prodRes, orderRes] = await Promise.all([
-            fetch(`${this.API_BASE_URL}/api/products`),
-            fetch(`${this.API_BASE_URL}/api/orders`)
-          ]);
-          if (prodRes.ok) this.products = await prodRes.json();
-          if (orderRes.ok) this.orders = await orderRes.json();
-        } catch (err) {
-          console.error("Error connecting to server:", err);
-          this.showToast("⚠️ Server connection issue. Using local cache.");
-        }
-      },
-
-      getWorkerIdentity: function(user) {
-        if (!user || user.role !== 'worker') return 'Worker 1';
-        if (user.full_name && user.full_name.toLowerCase().includes('worker 2')) return 'Worker 2';
-        return 'Worker 1';
-      },
-
-      onRoleChange: function(role) {
-        const locContainer = document.getElementById('location-field-container');
-        const locInput = document.getElementById('reg-location');
-        if (role === 'client') {
-          locContainer.classList.remove('hidden');
-          locInput.setAttribute('required', 'required');
-        } else {
-          locContainer.classList.add('hidden');
-          locInput.removeAttribute('required');
-          locInput.value = '';
+          this.renderHeader();
         }
       },
 
       showToast: function(msg) {
-        const toast = document.getElementById('global-toast');
-        const toastMsg = document.getElementById('toast-message');
-        if (toast && toastMsg) {
-          toastMsg.innerText = msg;
-          toast.classList.remove('hidden');
-          setTimeout(() => toast.classList.add('hidden'), 3500);
-        }
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 3500);
       },
 
-      toggleAuthForms: function(type) {
-        if (type === 'login') {
-          document.getElementById('register-form').classList.add('hidden');
-          document.getElementById('login-form').classList.remove('hidden');
-          document.getElementById('to-login-txt').classList.add('hidden');
-          document.getElementById('to-reg-txt').classList.remove('hidden');
+      switchAuthTab: function(tab) {
+        if(tab === 'login') {
+          document.getElementById('form-login').classList.remove('hidden');
+          document.getElementById('form-register').classList.add('hidden');
+          document.getElementById('tab-login').className = 'flex-1 py-2 font-semibold text-center border-b-2 border-indigo-600 text-indigo-600';
+          document.getElementById('tab-register').className = 'flex-1 py-2 font-semibold text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700';
         } else {
-          document.getElementById('login-form').classList.add('hidden');
-          document.getElementById('register-form').classList.remove('hidden');
-          document.getElementById('to-reg-txt').classList.add('hidden');
-          document.getElementById('to-login-txt').classList.remove('hidden');
+          document.getElementById('form-login').classList.add('hidden');
+          document.getElementById('form-register').classList.remove('hidden');
+          document.getElementById('tab-register').className = 'flex-1 py-2 font-semibold text-center border-b-2 border-indigo-600 text-indigo-600';
+          document.getElementById('tab-login').className = 'flex-1 py-2 font-semibold text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700';
         }
       },
 
-      register: async function(e) {
+      toggleLocationField: function() {
+        const role = document.getElementById('reg-role').value;
+        const locBox = document.getElementById('location-field');
+        if(role === 'Client') {
+          locBox.classList.remove('hidden');
+        } else {
+          locBox.classList.add('hidden');
+        }
+      },
+
+      handleRegister: async function(e) {
         e.preventDefault();
         const full_name = document.getElementById('reg-name').value.trim();
         const email = document.getElementById('reg-email').value.trim();
         const password = document.getElementById('reg-pass').value;
         const role = document.getElementById('reg-role').value;
         const delivery_address = document.getElementById('reg-location').value.trim();
+
+        if (role === 'Client' && !delivery_address) {
+          return this.showToast('Delivery address is required for Client registration!');
+        }
 
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/register`, {
@@ -465,18 +322,21 @@
           });
           const data = await res.json();
           if (data.success) {
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            this.showToast(`✅ Registered successfully as ${role.toUpperCase()}`);
-            this.navigateTo(role);
+            this.showToast(data.message || 'Registration successful!');
+            this.currentUser = data.user;
+            localStorage.setItem('eds_user', JSON.stringify(data.user));
+            this.renderHeader();
+            this.showDashboard();
+            this.fetchServerData();
           } else {
-            this.showToast(`❌ ${data.message || 'Registration failed.'}`);
+            this.showToast(data.message || 'Registration failed.');
           }
         } catch (err) {
-          this.showToast('❌ Server error during registration.');
+          this.showToast('Server connection error.');
         }
       },
 
-      login: async function(e) {
+      handleLogin: async function(e) {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-pass').value;
@@ -489,479 +349,368 @@
           });
           const data = await res.json();
           if (data.success) {
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            this.showToast(`✅ Welcome back, ${data.user.full_name}!`);
-            this.navigateTo(data.user.role);
+            this.showToast(`Welcome back, ${data.user.full_name}!`);
+            this.currentUser = data.user;
+            localStorage.setItem('eds_user', JSON.stringify(data.user));
+            this.renderHeader();
+            this.showDashboard();
+            this.fetchServerData();
           } else {
-            this.showToast(`❌ ${data.message || 'Invalid email or password!'}`);
+            this.showToast(data.message || 'Invalid credentials.');
           }
         } catch (err) {
-          this.showToast('❌ Server error during login.');
+          this.showToast('Server connection error.');
         }
       },
 
       logout: function() {
-        localStorage.removeItem('currentUser');
+        this.currentUser = null;
         this.cart = [];
-        this.navigateTo('login');
+        localStorage.removeItem('eds_user');
+        document.getElementById('auth-container').classList.remove('hidden');
+        document.getElementById('dashboard').classList.add('hidden');
+        this.renderHeader();
+        this.showToast('Logged out successfully.');
       },
 
-      navigateTo: function(rolePage) {
-        ['login', 'client', 'worker', 'owner'].forEach(p => {
-          const el = document.getElementById(`page-${p}`);
-          if (el) {
-            el.classList.add('hidden');
-            el.classList.remove('flex');
-          }
-        });
-        const activeUser = JSON.parse(localStorage.getItem('currentUser'));
-        const navInfo = document.getElementById('user-session-info');
-        if (rolePage !== 'login' && activeUser) {
-          navInfo.classList.remove('hidden');
-          navInfo.classList.add('flex');
-          document.getElementById('nav-user-name').innerText = activeUser.full_name;
-          document.getElementById('nav-user-role').innerText = activeUser.role;
-        } else {
-          navInfo.classList.add('hidden');
-          navInfo.classList.remove('flex');
-        }
-        const targetPage = document.getElementById(`page-${rolePage}`);
-        if (targetPage) {
-          targetPage.classList.remove('hidden');
-          targetPage.classList.add('flex');
-          this.renderViews();
-        }
-      },
-
-      renderViews: async function() {
-        await this.fetchServerData();
-        const activeUser = JSON.parse(localStorage.getItem('currentUser'));
-        const now = Date.now();
-        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-        const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
-
-        const clientGrid = document.getElementById('client-products-grid');
-        if (clientGrid) {
-          clientGrid.innerHTML = this.products.map(p => `
-            <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between">
-              <div>
-                <div class="w-full h-32 bg-amber-50 rounded-2xl flex items-center justify-center mb-4">
-                  <i data-lucide="package" class="w-12 h-12 text-amber-500"></i>
-                </div>
-                <h3 class="font-bold text-gray-800 text-base">${p.name}</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Stock Left: <span class="font-bold text-gray-700">${p.stock}</span></p>
-                <p class="text-xl font-extrabold text-indigo-600 mt-2">₱ ${p.price}.00</p>
-              </div>
-              <div class="grid grid-cols-2 gap-2 mt-4">
-                <button type="button" onclick="window.app.addToCart(${p.id})" ${p.stock <= 0 ? 'disabled' : ''} class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 disabled:bg-gray-200 disabled:text-gray-400 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
-                  <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Add to Cart
-                </button>
-                <button type="button" onclick="window.app.directBuyNow(${p.id})" ${p.stock <= 0 ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
-                  <i data-lucide="zap" class="w-3.5 h-3.5"></i> Buy Now
-                </button>
-              </div>
+      renderHeader: function() {
+        const container = document.getElementById('user-info');
+        if (this.currentUser) {
+          container.innerHTML = `
+            <div class="text-right">
+              <div class="font-bold text-sm">${this.currentUser.full_name}</div>
+              <div class="text-xs text-indigo-200 capitalize">${this.currentUser.role}</div>
             </div>
-          `).join('');
-        }
-
-        const workerTable = document.getElementById('worker-inventory-table');
-        if (workerTable) {
-          workerTable.innerHTML = this.products.map(p => `
-            <tr>
-              <td class="p-3 font-semibold text-gray-800">${p.name}</td>
-              <td class="p-3 text-gray-600">₱ ${p.price}.00</td>
-              <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">${p.stock} left</span></td>
-              <td class="p-3 font-bold text-emerald-600">${p.sold_units || 0} sold</td>
-              <td class="p-3 text-center">
-                <button type="button" onclick="window.app.workerAddSale(${p.id})" ${p.stock <= 0 ? 'disabled' : ''} class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition">
-                  +1 Manual Sale
-                </button>
-              </td>
-            </tr>
-          `).join('');
-        }
-
-        const workerSelect = document.getElementById('worker-filter-select');
-        let currentWorkerProfile = 'Worker 1';
-        if (activeUser && activeUser.role === 'worker') {
-          currentWorkerProfile = this.getWorkerIdentity(activeUser);
-          if (workerSelect) {
-            workerSelect.value = currentWorkerProfile;
-            workerSelect.disabled = true;
-          }
-        }
-
-        const workerOrdersTable = document.getElementById('worker-orders-table');
-        if (workerOrdersTable) {
-          const filteredOrders = this.orders.filter(o => {
-            const isAssigned = o.assigned_worker === currentWorkerProfile;
-            const orderTime = new Date(o.created_at).getTime();
-            const isWithin7Days = (now - orderTime) < SEVEN_DAYS;
-            return isAssigned && isWithin7Days;
-          });
-
-          if (filteredOrders.length === 0) {
-            workerOrdersTable.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-xs font-bold text-gray-400">No active orders or manual sales recorded for <span class="text-indigo-900">${currentWorkerProfile}</span> within the last 7 days.</td></tr>`;
-          } else {
-            workerOrdersTable.innerHTML = filteredOrders.map(order => {
-              let paymentBadge = `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-xs font-bold">💵 Cash / COD</span>`;
-              return `
-                <tr>
-                  <td class="p-3 font-bold text-gray-800">${order.client_name}</td>
-                  <td class="p-3 text-xs text-gray-600">${order.client_address}</td>
-                  <td class="p-3 text-xs text-gray-700 font-medium">Order ID: ${order.id}</td>
-                  <td class="p-3 font-black text-indigo-700">₱ ${order.total_amount}.00</td>
-                  <td class="p-3">${paymentBadge}</td>
-                  <td class="p-3 text-center">
-                    ${order.status === 'Pending' 
-                      ? `<button type="button" onclick="window.app.completeOrder('${order.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-xl text-xs font-bold shadow">Mark Delivered</button>`
-                      : `<span class="text-xs font-bold text-emerald-600">✔ Completed</span>`
-                    }
-                  </td>
-                </tr>
-              `;
-            }).join('');
-          }
-        }
-
-        const w1Table = document.getElementById('owner-worker1-table');
-        const w2Table = document.getElementById('owner-worker2-table');
-        if (w1Table && w2Table) {
-          const w1Orders = this.orders.filter(o => o.assigned_worker === 'Worker 1' && (now - new Date(o.created_at).getTime()) < FOURTEEN_DAYS);
-          const w2Orders = this.orders.filter(o => o.assigned_worker === 'Worker 2' && (now - new Date(o.created_at).getTime()) < FOURTEEN_DAYS);
-          let w1Total = 0, w2Total = 0;
-
-          if (w1Orders.length === 0) {
-            w1Table.innerHTML = `<tr><td colspan="4" class="text-center p-3 font-bold text-gray-400">No sales for Worker 1 in the last 14 days.</td></tr>`;
-          } else {
-            w1Table.innerHTML = w1Orders.map(o => {
-              w1Total += parseFloat(o.total_amount);
-              return `
-                <tr>
-                  <td class="p-2 font-black text-gray-800">${o.client_name}</td>
-                  <td class="p-2 text-gray-600 font-bold">${o.id}</td>
-                  <td class="p-2 font-black text-blue-600">₱ ${o.total_amount}.00</td>
-                  <td class="p-2 font-black ${o.status === 'Pending' ? 'text-amber-600' : 'text-emerald-600'}">${o.status}</td>
-                </tr>
-              `;
-            }).join('');
-          }
-          document.getElementById('w1-total-sales').innerText = `Total: ₱ ${w1Total}.00`;
-
-          if (w2Orders.length === 0) {
-            w2Table.innerHTML = `<tr><td colspan="4" class="text-center p-3 font-bold text-gray-400">No sales for Worker 2 in the last 14 days.</td></tr>`;
-          } else {
-            w2Table.innerHTML = w2Orders.map(o => {
-              w2Total += parseFloat(o.total_amount);
-              return `
-                <tr>
-                  <td class="p-2 font-black text-gray-800">${o.client_name}</td>
-                  <td class="p-2 text-gray-600 font-bold">${o.id}</td>
-                  <td class="p-2 font-black text-purple-600">₱ ${o.total_amount}.00</td>
-                  <td class="p-2 font-black ${o.status === 'Pending' ? 'text-amber-600' : 'text-emerald-600'}">${o.status}</td>
-                </tr>
-              `;
-            }).join('');
-          }
-          document.getElementById('w2-total-sales').innerText = `Total: ₱ ${w2Total}.00`;
-        }
-
-        const ownerTable = document.getElementById('owner-inventory-table');
-        if (ownerTable) {
-          let grandSales = 0, grandItemsSold = 0, grandStock = 0;
-          ownerTable.innerHTML = this.products.map(p => {
-            const sold = p.sold_units || 0;
-            const revenue = sold * parseFloat(p.price);
-            grandSales += revenue;
-            grandItemsSold += sold;
-            grandStock += p.stock;
-            return `
-              <tr>
-                <td class="p-3 font-semibold text-gray-800">${p.name}</td>
-                <td class="p-3 text-gray-600">₱ ${p.price}.00</td>
-                <td class="p-3 font-bold text-indigo-600">${sold}</td>
-                <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">${p.stock}</span></td>
-                <td class="p-3 font-bold text-emerald-600">₱ ${revenue}.00</td>
-                <td class="p-3 text-center">
-                  <span class="text-xs text-gray-400">Active</span>
-                </td>
-              </tr>
-            `;
-          }).join('');
-          document.getElementById('owner-total-sales').innerText = `₱ ${grandSales}.00`;
-          document.getElementById('owner-items-sold').innerText = `${grandItemsSold} Units`;
-          document.getElementById('owner-total-stock').innerText = `${grandStock} Units`;
-        }
-
-        const totalCartItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
-        document.getElementById('cart-count').innerText = totalCartItems;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-      },
-
-      addToCart: function(id) {
-        const item = this.products.find(p => p.id === id);
-        if (!item || item.stock <= 0) {
-          this.showToast('⚠️ Product is currently out of stock.');
-          return;
-        }
-        const existingItem = this.cart.find(c => c.id === id);
-        if (existingItem) {
-          if (existingItem.qty < item.stock) {
-            existingItem.qty += 1;
-            this.showToast(`🛍️ Added +1 ${item.name} to cart!`);
-          } else {
-            this.showToast(`⚠️ Maximum available stock reached.`);
-          }
+            <button onclick="app.logout()" class="bg-indigo-800 hover:bg-indigo-900 text-white text-xs px-3 py-1.5 rounded-lg transition">
+              Log Out
+            </button>
+          `;
         } else {
-          this.cart.push({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            qty: 1,
-            maxStock: item.stock
-          });
-          this.showToast(`🛍️ Added to Cart: ${item.name}`);
+          container.innerHTML = `<span class="text-xs bg-indigo-800 px-3 py-1 rounded-full text-indigo-200">Guest Access</span>`;
         }
-        this.renderViews();
       },
 
-      openCartModal: function() {
-        if (this.cart.length === 0) {
-          this.showToast('🛒 Your shopping cart is empty!');
+      showDashboard: function() {
+        document.getElementById('auth-container').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+
+        // Role-based controls
+        const role = this.currentUser.role;
+        if (role === 'Owner') {
+          document.getElementById('btn-add-product').classList.remove('hidden');
+          document.getElementById('admin-orders-section').classList.remove('hidden');
+          document.getElementById('client-section').classList.add('hidden');
+        } else if (role.startsWith('Worker')) {
+          document.getElementById('btn-add-product').classList.add('hidden');
+          document.getElementById('admin-orders-section').classList.remove('hidden');
+          document.getElementById('client-section').classList.add('hidden');
+        } else {
+          // Client
+          document.getElementById('btn-add-product').classList.add('hidden');
+          document.getElementById('admin-orders-section').classList.add('hidden');
+          document.getElementById('client-section').classList.remove('hidden');
+        }
+      },
+
+      fetchServerData: async function() {
+        try {
+          const [prodRes, orderRes] = await Promise.all([
+            fetch(`${this.API_BASE_URL}/api/products`),
+            fetch(`${this.API_BASE_URL}/api/orders`)
+          ]);
+          
+          if(prodRes.ok) this.products = await prodRes.json();
+          if(orderRes.ok) this.orders = await orderRes.json();
+
+          this.renderProducts();
+          this.renderCart();
+          this.renderClientOrders();
+          this.renderAdminOrders();
+        } catch(e) {
+          console.error(e);
+        }
+      },
+
+      renderProducts: function() {
+        const grid = document.getElementById('products-grid');
+        grid.innerHTML = '';
+
+        if(this.products.length === 0) {
+          grid.innerHTML = `<p class="col-span-full text-gray-500 text-center py-6">No products available in inventory.</p>`;
           return;
         }
-        this.renderCartModalItems();
-        document.getElementById('cart-modal').classList.remove('hidden');
-      },
 
-      closeCartModal: function() {
-        document.getElementById('cart-modal').classList.add('hidden');
-      },
-
-      renderCartModalItems: function() {
-        const cartList = document.getElementById('cart-item-list');
-        let grandTotal = 0;
-        if (this.cart.length === 0) {
-          cartList.innerHTML = `<p class="text-center py-6 text-xs text-gray-400">Cart is empty.</p>`;
-          document.getElementById('cart-total-price').innerText = `₱ 0.00`;
-          return;
-        }
-        cartList.innerHTML = this.cart.map(item => {
-          const itemTotal = item.price * item.qty;
-          grandTotal += itemTotal;
-          return `
-            <div class="py-3 flex items-center justify-between gap-2">
-              <div class="flex-grow">
-                <p class="font-bold text-gray-800 text-xs">${item.name}</p>
-                <p class="text-[11px] text-gray-400">₱ ${item.price}.00 × ${item.qty} = <span class="font-bold text-indigo-600">₱ ${itemTotal}.00</span></p>
-              </div>
-              <div class="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl border border-gray-200">
-                <button type="button" onclick="window.app.updateCartQty(${item.id}, -1)" class="w-6 h-6 bg-white rounded-lg shadow-sm font-black text-xs text-gray-700 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition">-</button>
-                <span class="text-xs font-bold text-gray-800 px-1.5">${item.qty}</span>
-                <button type="button" onclick="window.app.updateCartQty(${item.id}, 1)" class="w-6 h-6 bg-white rounded-lg shadow-sm font-black text-xs text-gray-700 hover:bg-emerald-100 hover:text-emerald-600 flex items-center justify-center transition">+</button>
-              </div>
-              <button type="button" onclick="window.app.removeCartItem(${item.id})" class="text-gray-400 hover:text-rose-600 p-1">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
+        this.products.forEach(p => {
+          const card = document.createElement('div');
+          card.className = "border rounded-xl p-4 bg-gray-50 flex flex-col justify-between shadow-sm hover:shadow transition";
+          card.innerHTML = `
+            <div>
+              <h3 class="font-bold text-gray-800 text-base mb-1">${p.name}</h3>
+              <div class="text-indigo-600 font-extrabold text-lg mb-2">₱${parseFloat(p.price).toFixed(2)}</div>
+              <div class="text-xs text-gray-500 mb-4">Stock: <span class="font-bold ${p.stock > 0 ? 'text-gray-700' : 'text-red-500'}">${p.stock} units</span></div>
+            </div>
+            ${this.currentUser && this.currentUser.role === 'Client' ? `
+              <button onclick="app.addToCart(${p.id})" ${p.stock <= 0 ? 'disabled' : ''} class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-semibold rounded-lg text-sm shadow transition">
+                ${p.stock > 0 ? '<i class="fa-solid fa-cart-plus mr-1"></i> Add to Cart' : 'Out of Stock'}
               </button>
-            </div>
+            ` : ''}
           `;
-        }).join('');
-        document.getElementById('cart-total-price').innerText = `₱ ${grandTotal}.00`;
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+          grid.appendChild(card);
+        });
       },
 
-      updateCartQty: function(id, change) {
-        const item = this.cart.find(c => c.id === id);
-        if (!item) return;
-        const newQty = item.qty + change;
-        if (newQty <= 0) {
-          this.removeCartItem(id);
-          return;
-        }
-        if (newQty > item.maxStock) {
-          this.showToast(`⚠️ Only ${item.maxStock} items available.`);
-          return;
-        }
-        item.qty = newQty;
-        this.renderCartModalItems();
-        this.renderViews();
-      },
+      addToCart: function(prodId) {
+        const prod = this.products.find(p => p.id === prodId);
+        if(!prod) return;
 
-      removeCartItem: function(id) {
-        this.cart = this.cart.filter(c => c.id !== id);
-        this.renderCartModalItems();
-        this.renderViews();
-        if (this.cart.length === 0) {
-          this.closeCartModal();
-        }
-      },
-
-      proceedToCheckoutFromCart: function() {
-        if (this.cart.length === 0) return;
-        this.activeCheckoutItems = [...this.cart];
-        this.closeCartModal();
-        this.showCheckoutModal();
-      },
-
-      directBuyNow: function(id) {
-        const item = this.products.find(p => p.id === id);
-        if (item && item.stock > 0) {
-          this.activeCheckoutItems = [{
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            qty: 1,
-            maxStock: item.stock
-          }];
-          this.showCheckoutModal();
-        }
-      },
-
-      showCheckoutModal: function() {
-        const summaryList = document.getElementById('checkout-summary-list');
-        const activeUser = JSON.parse(localStorage.getItem('currentUser'));
-        const addressBox = document.getElementById('modal-delivery-address');
-        const addressText = document.getElementById('client-address-text');
-        if (activeUser && activeUser.role === 'client' && activeUser.delivery_address) {
-          addressBox.classList.remove('hidden');
-          addressText.innerText = activeUser.delivery_address;
+        const cartItem = this.cart.find(c => c.product_id === prodId);
+        if(cartItem) {
+          if(cartItem.quantity + 1 > prod.stock) {
+            return this.showToast('Cannot exceed available product stock!');
+          }
+          cartItem.quantity++;
         } else {
-          addressBox.classList.add('hidden');
+          this.cart.push({ product_id: prod.id, name: prod.name, price: prod.price, quantity: 1 });
         }
+        this.showToast(`${prod.name} added to cart!`);
+        this.renderCart();
+      },
+
+      renderCart: function() {
+        const container = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+        container.innerHTML = '';
+
+        if(this.cart.length === 0) {
+          container.innerHTML = `<p class="text-gray-500 text-sm py-3">Your shopping cart is empty.</p>`;
+          totalEl.innerText = '0.00';
+          return;
+        }
+
         let total = 0;
-        summaryList.innerHTML = this.activeCheckoutItems.map(p => {
-          const itemSubtotal = p.price * p.qty;
-          total += itemSubtotal;
-          return `
-            <div class="py-2 flex justify-between items-center">
-              <div>
-                <p class="font-bold text-gray-800 text-xs">${p.name}</p>
-                <p class="text-[10px] text-gray-400">Qty: ${p.qty} × ₱ ${p.price}.00</p>
-              </div>
-              <span class="font-bold text-indigo-600 text-xs">₱ ${itemSubtotal}.00</span>
+        this.cart.forEach((item, index) => {
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+          const row = document.createElement('div');
+          row.className = "py-3 flex justify-between items-center";
+          row.innerHTML = `
+            <div>
+              <div class="font-semibold text-sm">${item.name}</div>
+              <div class="text-xs text-gray-500">₱${parseFloat(item.price).toFixed(2)} x ${item.quantity}</div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="font-bold text-indigo-600 text-sm">₱${itemTotal.toFixed(2)}</span>
+              <button onclick="app.removeFromCart(${index})" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-trash"></i></button>
             </div>
           `;
-        }).join('');
-        document.getElementById('checkout-total-price').innerText = `₱ ${total}.00`;
-        document.getElementById('checkout-modal').classList.remove('hidden');
+          container.appendChild(row);
+        });
+
+        totalEl.innerText = total.toFixed(2);
+      },
+
+      removeFromCart: function(index) {
+        this.cart.splice(index, 1);
+        this.renderCart();
+      },
+
+      openCheckoutModal: function() {
+        if(this.cart.length === 0) return this.showToast('Your cart is empty!');
+        document.getElementById('checkout-address').value = this.currentUser.delivery_address || '';
+        document.getElementById('modal-checkout').classList.remove('hidden');
       },
 
       closeCheckoutModal: function() {
-        document.getElementById('checkout-modal').classList.add('hidden');
+        document.getElementById('modal-checkout').classList.add('hidden');
       },
 
-      confirmPayment: async function() {
-        const selectedPayment = document.querySelector('input[name="payment-method"]:checked').value;
-        const assignedWorker = document.getElementById('select-worker-assign').value;
-        const activeUser = JSON.parse(localStorage.getItem('currentUser'));
-        let totalAmount = 0;
+      submitOrder: async function() {
+        const assigned_worker = document.getElementById('checkout-worker').value;
+        const payment_method = document.getElementById('checkout-payment').value;
+        const client_address = document.getElementById('checkout-address').value.trim();
 
-        const orderItemsFormatted = this.activeCheckoutItems.map(item => {
-          totalAmount += item.price * item.qty;
-          return {
-            product_id: item.id,
-            product_name: item.name,
-            price: item.price,
-            quantity: item.qty
-          };
-        });
+        if(!client_address) return this.showToast('Delivery address is required!');
 
-        const newOrderPayload = {
-          id: 'ORD-' + Date.now(),
-          client_name: activeUser ? activeUser.full_name : 'Guest Client',
-          client_address: activeUser && activeUser.delivery_address ? activeUser.delivery_address : 'N/A',
-          total_amount: totalAmount,
-          payment_method: selectedPayment,
-          assigned_worker: assignedWorker,
+        const total_amount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const orderId = 'ORD-' + Date.now().toString().slice(-6);
+
+        const orderData = {
+          id: orderId,
+          client_name: this.currentUser.full_name,
+          client_address: client_address,
+          total_amount: total_amount,
+          payment_method: payment_method,
+          assigned_worker: assigned_worker,
           status: 'Pending',
-          items: orderItemsFormatted
+          items: this.cart
         };
 
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newOrderPayload)
+            body: JSON.stringify(orderData)
           });
           const data = await res.json();
-          if (data.success) {
-            this.activeCheckoutItems.forEach(item => {
-              this.cart = this.cart.filter(c => c.id !== item.id);
-            });
+          if(data.success) {
+            this.showToast('Order placed successfully!');
+            this.cart = [];
             this.closeCheckoutModal();
-            this.showToast(`✅ Order sent to ${assignedWorker}!`);
-            this.renderViews();
+            this.fetchServerData();
           } else {
-            this.showToast(`❌ ${data.message || 'Failed to place order.'}`);
+            this.showToast(data.message || 'Failed to place order.');
           }
-        } catch (err) {
-          this.showToast('❌ Server error during checkout.');
+        } catch(e) {
+          this.showToast('Server error during checkout.');
         }
       },
 
-      completeOrder: async function(orderId) {
+      renderClientOrders: function() {
+        const activeContainer = document.getElementById('client-active-orders');
+        const historyContainer = document.getElementById('client-order-history');
+        
+        activeContainer.innerHTML = '';
+        historyContainer.innerHTML = '';
+
+        const myOrders = this.orders.filter(o => o.client_name === this.currentUser.full_name);
+
+        const activeOrders = myOrders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled');
+        const historyOrders = myOrders.filter(o => o.status === 'Delivered' || o.status === 'Cancelled');
+
+        // Render Active Orders
+        if(activeOrders.length === 0) {
+          activeContainer.innerHTML = `<p class="text-gray-500 text-sm">No active pending orders.</p>`;
+        } else {
+          activeOrders.forEach(o => {
+            const card = document.createElement('div');
+            card.className = "border rounded-lg p-4 bg-indigo-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-2";
+            card.innerHTML = `
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-gray-800">${o.id}</span>
+                  <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold ${o.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${o.status}</span>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">Processed by: <span class="font-semibold text-indigo-700">${o.assigned_worker}</span></div>
+                <div class="text-xs text-gray-500">Payment: ${o.payment_method}</div>
+              </div>
+              <div class="text-right">
+                <div class="font-bold text-indigo-600">₱${parseFloat(o.total_amount).toFixed(2)}</div>
+              </div>
+            `;
+            activeContainer.appendChild(card);
+          });
+        }
+
+        // Render History Orders
+        if(historyOrders.length === 0) {
+          historyContainer.innerHTML = `<p class="text-gray-500 text-sm">No completed order history.</p>`;
+        } else {
+          historyOrders.forEach(o => {
+            const card = document.createElement('div');
+            card.className = "border rounded-lg p-4 bg-gray-50 flex justify-between items-center";
+            card.innerHTML = `
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-gray-700">${o.id}</span>
+                  <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold ${o.status === 'Delivered' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}">${o.status}</span>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Worker: ${o.assigned_worker} | Total: ₱${parseFloat(o.total_amount).toFixed(2)}</div>
+              </div>
+              <button onclick="app.deleteHistory('${o.id}')" class="text-red-500 hover:text-red-700 text-xs px-3 py-1 border border-red-200 rounded hover:bg-red-50 transition">
+                <i class="fa-solid fa-trash mr-1"></i> Delete
+              </button>
+            `;
+            historyContainer.appendChild(card);
+          });
+        }
+      },
+
+      deleteHistory: async function(orderId) {
+        if(!confirm('Are you sure you want to delete this order from your history?')) return;
+        try {
+          const res = await fetch(`${this.API_BASE_URL}/api/orders/history/${orderId}`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if(data.success) {
+            this.showToast('Order history item deleted.');
+            this.fetchServerData();
+          } else {
+            this.showToast(data.message || 'Failed to delete history.');
+          }
+        } catch(e) {
+          this.showToast('Server connection error.');
+        }
+      },
+
+      renderAdminOrders: function() {
+        const table = document.getElementById('admin-orders-table');
+        table.innerHTML = '';
+
+        let displayOrders = this.orders;
+        
+        // Filter orders if user is Worker 1 or Worker 2
+        if(this.currentUser.role.startsWith('Worker')) {
+          displayOrders = this.orders.filter(o => o.assigned_worker === this.currentUser.role);
+        }
+
+        if(displayOrders.length === 0) {
+          table.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-500">No orders assigned or available.</td></tr>`;
+          return;
+        }
+
+        displayOrders.forEach(o => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-gray-50";
+          tr.innerHTML = `
+            <td class="p-3 font-semibold text-xs">${o.id}</td>
+            <td class="p-3">${o.client_name}</td>
+            <td class="p-3 text-xs text-gray-600">${o.client_address || 'N/A'}</td>
+            <td class="p-3 text-xs font-medium text-indigo-600">${o.assigned_worker}</td>
+            <td class="p-3 font-bold">₱${parseFloat(o.total_amount).toFixed(2)}</td>
+            <td class="p-3">
+              <span class="text-xs px-2 py-1 rounded font-semibold ${o.status === 'Approved' ? 'bg-green-100 text-green-700' : o.status === 'Delivered' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}">${o.status}</span>
+            </td>
+            <td class="p-3 text-center space-x-1">
+              ${o.status === 'Pending' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Approved')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2.5 py-1 rounded">Approve</button>` : ''}
+              ${o.status === 'Approved' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1 rounded">Deliver</button>` : ''}
+            </td>
+          `;
+          table.appendChild(tr);
+        });
+      },
+
+      updateOrderStatus: async function(orderId, status) {
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Delivered' })
+            body: JSON.stringify({ status })
           });
           const data = await res.json();
-          if (data.success) {
-            this.showToast(`✅ Order marked as Delivered!`);
-            this.renderViews();
+          if(data.success) {
+            this.showToast(`Order ${orderId} updated to ${status}!`);
+            this.fetchServerData();
           }
-        } catch (err) {
-          this.showToast('❌ Failed to update order status.');
+        } catch(e) {
+          this.showToast('Failed to update order status.');
         }
       },
 
-      workerAddSale: async function(id) {
-        const activeUser = JSON.parse(localStorage.getItem('currentUser'));
-        const currentWorkerProfile = this.getWorkerIdentity(activeUser);
-        const item = this.products.find(p => p.id === id);
-        if (!item || item.stock <= 0) {
-          this.showToast('⚠️ Out of stock!');
-          return;
-        }
-
-        const manualOrderPayload = {
-          id: 'MAN-' + Date.now(),
-          client_name: 'Walk-in / Manual Sale',
-          client_address: 'Store Counter',
-          total_amount: item.price,
-          payment_method: 'Cash',
-          assigned_worker: currentWorkerProfile,
-          status: 'Delivered',
-          items: [{
-            product_id: item.id,
-            product_name: item.name,
-            price: item.price,
-            quantity: 1
-          }]
-        };
-
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(manualOrderPayload)
-          });
-          const data = await res.json();
-          if (data.success) {
-            this.showToast(`✅ Manual sale recorded under ${currentWorkerProfile}!`);
-            this.renderViews();
-          }
-        } catch (err) {
-          this.showToast('❌ Error recording manual sale.');
-        }
+      openAddProductModal: function() {
+        document.getElementById('modal-add-product').classList.remove('hidden');
       },
 
-      addProduct: async function(e) {
-        e.preventDefault();
+      closeAddProductModal: function() {
+        document.getElementById('modal-add-product').classList.add('hidden');
+      },
+
+      submitNewProduct: async function() {
         const name = document.getElementById('prod-name').value.trim();
         const price = parseFloat(document.getElementById('prod-price').value);
         const stock = parseInt(document.getElementById('prod-stock').value);
+
+        if(!name || isNaN(price) || isNaN(stock)) return this.showToast('Please complete all product details correctly!');
 
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/products`, {
@@ -970,23 +719,19 @@
             body: JSON.stringify({ name, price, stock })
           });
           const data = await res.json();
-          if (data.success) {
-            e.target.reset();
-            this.showToast(`✅ Added new product: ${name}`);
-            this.renderViews();
-          } else {
-            this.showToast(`❌ ${data.message || 'Failed to add product.'}`);
+          if(data.success) {
+            this.showToast('New product added!');
+            this.closeAddProductModal();
+            this.fetchServerData();
           }
-        } catch (err) {
-          this.showToast('❌ Server error adding product.');
+        } catch(e) {
+          this.showToast('Error adding product.');
         }
       }
     };
 
-    window.app = app;
-    document.addEventListener('DOMContentLoaded', () => {
-      window.app.init();
-    });
+    // Initialize application
+    document.addEventListener('DOMContentLoaded', () => app.init());
   </script>
 </body>
 </html>
