@@ -7,6 +7,62 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// --------------------------------------------------------
+// AUTO-CREATE TABLES SA POSTGRESQL (Render DB Setup)
+// --------------------------------------------------------
+const initDB = async () => {
+  try {
+    // 1. Create Users Table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        delivery_address TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    // 2. Create Products Table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        price NUMERIC(10, 2) NOT NULL,
+        stock INT NOT NULL DEFAULT 0,
+        sold_units INT DEFAULT 0
+      );
+    `);
+    
+    // 3. Create Orders Table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR(100) PRIMARY KEY,
+        client_name VARCHAR(255),
+        client_address TEXT,
+        total_amount NUMERIC(10, 2) NOT NULL,
+        payment_method VARCHAR(50),
+        assigned_worker VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    console.log("Database tables initialized successfully!");
+  } catch (err) {
+    console.error("Error creating database tables:", err.message);
+  }
+};
+
+// Patagasa ang Table Creation ig-start sa server
+initDB();
+
+// --------------------------------------------------------
+// API ENDPOINTS
+// --------------------------------------------------------
+
 // API 1: Get All Products
 app.get('/api/products', async (req, res) => {
   try {
@@ -39,12 +95,12 @@ app.post('/api/register', async (req, res) => {
     if (userExist.rows.length > 0) {
       return res.json({ success: false, message: 'Email already registered!' });
     }
-
+    
     const newUser = await pool.query(
       'INSERT INTO users (full_name, email, password, role, delivery_address) VALUES ($1, $2, $3, $4, $5) RETURNING id, full_name, email, role, delivery_address',
       [full_name, email, password, role, delivery_address || '']
     );
-
+    
     res.json({ success: true, user: newUser.rows[0] });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -85,7 +141,7 @@ app.post('/api/orders', async (req, res) => {
       'INSERT INTO orders (id, client_name, client_address, total_amount, payment_method, assigned_worker, status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())',
       [id, client_name, client_address, total_amount, payment_method, assigned_worker, status]
     );
-
+    
     if (items && Array.isArray(items)) {
       for (let item of items) {
         await pool.query(
@@ -94,7 +150,7 @@ app.post('/api/orders', async (req, res) => {
         );
       }
     }
-
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
