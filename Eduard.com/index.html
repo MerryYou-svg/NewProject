@@ -214,7 +214,7 @@
       <div class="bg-emerald-700 text-white p-6 rounded-3xl shadow-lg flex justify-between items-center">
         <div>
           <h1 class="text-2xl font-black">Worker Dashboard & Orders 📦</h1>
-          <p class="text-xs text-emerald-200 mt-1">Manage assigned client orders and monitor fulfillment status.</p>
+          <p class="text-xs text-emerald-200 mt-1">Manage assigned client orders and walk-in counter sales.</p>
         </div>
         <div class="flex items-center gap-2">
           <label class="text-xs font-extrabold text-emerald-100">Active Worker Profile:</label>
@@ -225,6 +225,7 @@
         </div>
       </div>
 
+      <!-- ASSIGNED CLIENT ORDERS -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm border-indigo-100">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
           <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i> Assigned Client Orders
@@ -243,6 +244,26 @@
               </tr>
             </thead>
             <tbody id="worker-orders-table" class="divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- WALK-IN SALES & PRODUCTS INVENTORY FOR WORKERS -->
+      <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Walk-in Products & Instant Sales (+1 Pislet)
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
+              <tr>
+                <th class="p-3">Product Name</th>
+                <th class="p-3">Unit Price</th>
+                <th class="p-3">Stock Remaining</th>
+                <th class="p-3 text-center">Walk-in Action</th>
+              </tr>
+            </thead>
+            <tbody id="worker-inventory-table" class="divide-y"></tbody>
           </table>
         </div>
       </div>
@@ -386,12 +407,10 @@
         const workerSelect = document.getElementById('reg-worker-choice');
         const ownerOpt = document.getElementById('opt-owner');
 
-        // Check availability from Backend
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/role-status`);
           const status = await res.json();
 
-          // Disable Owner option if already taken
           if (status.ownerTaken) {
             ownerOpt.disabled = true;
             ownerOpt.innerText = "Owner (Taken / Closed)";
@@ -519,6 +538,12 @@
           navInfo.classList.add('flex');
           document.getElementById('nav-user-name').innerText = this.currentUser.full_name;
           document.getElementById('nav-user-role').innerText = this.currentUser.role;
+
+          // Sync active worker profile dropdown
+          const workerSelect = document.getElementById('worker-filter-select');
+          if (workerSelect && this.currentUser.role.startsWith('Worker')) {
+            workerSelect.value = this.currentUser.role;
+          }
         } else {
           navInfo.classList.add('hidden');
           navInfo.classList.remove('flex');
@@ -636,6 +661,24 @@
             `).join('');
         }
 
+        // Render Worker Inventory Table for Walk-in Sales (+1 Pislet)
+        const workerInvTable = document.getElementById('worker-inventory-table');
+        if(workerInvTable && this.currentUser && this.currentUser.role.startsWith('Worker')) {
+          workerInvTable.innerHTML = this.products.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-gray-400">No products available.</td></tr>` :
+            this.products.map(p => `
+              <tr>
+                <td class="p-3 font-semibold text-gray-800">${p.name}</td>
+                <td class="p-3 text-gray-600">₱ ${parseFloat(p.price).toFixed(2)}</td>
+                <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">${p.stock} units</span></td>
+                <td class="p-3 text-center">
+                  <button type="button" onclick="window.app.workerWalkInSale(${p.id})" ${p.stock <= 0 ? 'disabled' : ''} class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-200 text-white text-xs font-bold px-3 py-2 rounded-xl transition shadow">
+                    🛒 Walk-in Sale (+1)
+                  </button>
+                </td>
+              </tr>
+            `).join('');
+        }
+
         const w1Table = document.getElementById('owner-worker1-table');
         const w2Table = document.getElementById('owner-worker2-table');
         const ownerInvTable = document.getElementById('owner-inventory-table');
@@ -665,6 +708,39 @@
         if(cartCountEl) cartCountEl.innerText = this.cart.reduce((sum, item) => sum + item.quantity, 0);
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
+      },
+
+      workerWalkInSale: async function(prodId) {
+        const prod = this.products.find(p => p.id === prodId);
+        if(!prod || prod.stock <= 0) return this.showToast('⚠️ Product is out of stock!');
+
+        const walkInOrderPayload = {
+          id: 'WALK-' + Date.now().toString().slice(-6),
+          client_name: 'Walk-in Customer',
+          client_address: 'Counter Direct Sale',
+          total_amount: prod.price,
+          payment_method: 'Cash',
+          assigned_worker: this.currentUser.role,
+          status: 'Delivered',
+          items: [{ product_id: prod.id, name: prod.name, price: prod.price, quantity: 1 }]
+        };
+
+        try {
+          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(walkInOrderPayload)
+          });
+          const data = await res.json();
+          if(data.success) {
+            this.showToast(`✅ Walk-in sale recorded for ${prod.name}! Stock deducted.`);
+            this.fetchServerData();
+          } else {
+            this.showToast(`❌ Failed to record walk-in sale.`);
+          }
+        } catch(e) {
+          this.showToast('❌ Server connection error.');
+        }
       },
 
       addToCart: function(prodId) {
