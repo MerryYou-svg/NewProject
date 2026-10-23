@@ -1,0 +1,138 @@
+{
+  "registeredUsers": [
+    { "id": 1, "name": "Eduard Owner", "email": "owner@eds.com", "pass": "owner123", "role": "owner", "location": "" },
+    { "id": 2, "name": "Ijho Worker", "email": "ijho@eds.com", "pass": "worker123", "role": "worker", "location": "" },
+    { "id": 3, "name": "Cj Worker", "email": "cj@eds.com", "pass": "worker123", "role": "worker", "location": "" },
+    { "id": 4, "name": "Maria Santos", "email": "maria.santos@gmail.com", "pass": "client123", "role": "client", "location": "123 Rizal St, Brgy. Poblacion, Cebu City" },
+    { "id": 5, "name": "Juan Dela Cruz", "email": "juan.delacruz@yahoo.com", "pass": "client123", "role": "client", "location": "45 Mabini Ave, Pasig City, Metro Manila" },
+    { "id": 6, "name": "Ana Reyes", "email": "ana.reyes@hotmail.com", "pass": "client123", "role": "client", "location": "78 Bonifacio Ave, Davao City" },
+    { "id": 7, "name": "Mark Tan", "email": "mark.tan@gmail.com", "pass": "client123", "role": "client", "location": "12 Roxas Blvd, Pasay City, Metro Manila" },
+    { "id": 8, "name": "Grace Lim", "email": "grace.lim@outlook.com", "pass": "client123", "role": "client", "location": "88 Quezon Ave, Quezon City" },
+    { "id": 9, "name": "Paul Garcia", "email": "paul.garcia@gmail.com", "pass": "client123", "role": "client", "location": "55 Osmeña St, Iloilo City" },
+    { "id": 10, "name": "Liza Soberano", "email": "liza.s@gmail.com", "pass": "client123", "role": "client", "location": "99 Luna St, Baguio City" }
+  ],
+  "products": [
+    { "id": 101, "name": "Black Pens (1 Box - 12 pcs)", "price": 150, "stock": 40, "sold": 10 },
+    { "id": 102, "name": "A4 Bond Paper (1 Ream)", "price": 220, "stock": 25, "sold": 15 },
+    { "id": 103, "name": "Spiral Notebooks (Pack of 5)", "price": 120, "stock": 60, "sold": 20 },
+    { "id": 104, "name": "Heavy Duty Stapler with Staples", "price": 350, "stock": 15, "sold": 5 },
+    { "id": 105, "name": "Correction Tape (Set of 3)", "price": 85, "stock": 50, "sold": 12 },
+    { "id": 106, "name": "Permanent Markers (Black/Blue/Red)", "price": 110, "stock": 30, "sold": 8 },
+    { "id": 107, "name": "Transparent Packing Tape 2\"", "price": 45, "stock": 100, "sold": 40 },
+    { "id": 108, "name": "Sticky Notes 3x3 (Pack of 4)", "price": 95, "stock": 45, "sold": 18 },
+    { "id": 109, "name": "Thermal Receipt Paper Roll (10 pcs)", "price": 300, "stock": 20, "sold": 7 },
+    { "id": 110, "name": "Manila Envelopes (Short - 25 pcs)", "price": 75, "stock": 80, "sold": 25 }
+  ],
+  "orders": [
+    {
+      "id": "ORD-1001",
+      "clientName": "Maria Santos",
+      "clientAddress": "123 Rizal St, Brgy. Poblacion, Cebu City",
+      "items": [{ "id": 101, "name": "Black Pens (1 Box - 12 pcs)", "price": 150, "qty": 1 }, { "id": 102, "name": "A4 Bond Paper (1 Ream)", "price": 220, "qty": 1 }],
+      "totalPrice": 370,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 1",
+      "status": "Delivered",
+      "createdAt": 1700000000000
+    },
+    {
+      "id": "ORD-1002",
+      "clientName": "Juan Dela Cruz",
+      "clientAddress": "45 Mabini Ave, Pasig City, Metro Manila",
+      "items": [{ "id": 102, "name": "A4 Bond Paper (1 Ream)", "price": 220, "qty": 2 }],
+      "totalPrice": 440,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 2",
+      "status": "Delivered",
+      "createdAt": 1700000100000
+    },
+    {
+      "id": "ORD-1003",
+      "clientName": "Ana Reyes",
+      "clientAddress": "78 Bonifacio Ave, Davao City",
+      "items": [{ "id": 104, "name": "Heavy Duty Stapler with Staples", "price": 350, "qty": 1 }],
+      "totalPrice": 350,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 1",
+      "status": "Pending",
+      "createdAt": 1700000200000
+    },
+    {
+      "id": "ORD-1004",
+      "clientName": "Mark Tan",
+      "clientAddress": "12 Roxas Blvd, Pasay City, Metro Manila",
+      "items": [{ "id": 105, "name": "Correction Tape (Set of 3)", "price": 85, "qty": 3 }],
+      "totalPrice": 255,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 2",
+      "status": "Delivered",
+      "createdAt": 1700000300000
+    },
+    {
+      "id": "ORD-1005",
+      "clientName": "Grace Lim",
+      "clientAddress": "88 Quezon Ave, Quezon City",
+      "items": [{ "id": 109, "name": "Thermal Receipt Paper Roll (10 pcs)", "price": 300, "qty": 2 }],
+      "totalPrice": 600,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 1",
+      "status": "Pending",
+      "createdAt": 1700000400000
+    },
+    {
+      "id": "MAN-1006",
+      "clientName": "Walk-in / Manual Sale",
+      "clientAddress": "Store Counter",
+      "items": [{ "id": 101, "name": "Black Pens (1 Box - 12 pcs)", "price": 150, "qty": 1 }],
+      "totalPrice": 150,
+      "paymentMethod": "Cash",
+      "assignedWorker": "Worker 1",
+      "status": "Delivered",
+      "createdAt": 1700000500000
+    },
+    {
+      "id": "MAN-1007",
+      "clientName": "Walk-in / Manual Sale",
+      "clientAddress": "Store Counter",
+      "items": [{ "id": 107, "name": "Transparent Packing Tape 2\"", "price": 45, "qty": 2 }],
+      "totalPrice": 90,
+      "paymentMethod": "Cash",
+      "assignedWorker": "Worker 2",
+      "status": "Delivered",
+      "createdAt": 1700000600000
+    },
+    {
+      "id": "ORD-1008",
+      "clientName": "Paul Garcia",
+      "clientAddress": "55 Osmeña St, Iloilo City",
+      "items": [{ "id": 102, "name": "A4 Bond Paper (1 Ream)", "price": 220, "qty": 1 }],
+      "totalPrice": 220,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 2",
+      "status": "Delivered",
+      "createdAt": 1700000700000
+    },
+    {
+      "id": "ORD-1009",
+      "clientName": "Liza Soberano",
+      "clientAddress": "99 Luna St, Baguio City",
+      "items": [{ "id": 108, "name": "Sticky Notes 3x3 (Pack of 4)", "price": 95, "qty": 2 }],
+      "totalPrice": 190,
+      "paymentMethod": "COD",
+      "assignedWorker": "Worker 1",
+      "status": "Pending",
+      "createdAt": 1700000800000
+    },
+    {
+      "id": "MAN-1010",
+      "clientName": "Walk-in / Manual Sale",
+      "clientAddress": "Store Counter",
+      "items": [{ "id": 102, "name": "A4 Bond Paper (1 Ream)", "price": 220, "qty": 1 }],
+      "totalPrice": 220,
+      "paymentMethod": "Cash",
+      "assignedWorker": "Worker 2",
+      "status": "Delivered",
+      "createdAt": 1700000900000
+    }
+  ]
+}
