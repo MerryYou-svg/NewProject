@@ -11,10 +11,21 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic nga pag-add sa bundle_price column kung wala pa kini sa database
-pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);')
-  .then(() => console.log('Database checked: bundle_price column is ready.'))
-  .catch(err => console.log('DB Column Check Error:', err.message));
+// Automatic tablecreation ug bundle_price column verification
+pool.query(`
+  CREATE TABLE IF NOT EXISTS products (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    bundle_price DECIMAL(10,2),
+    bundle_qty INT DEFAULT 12,
+    stock INT NOT NULL,
+    sold_units INT DEFAULT 0
+  );
+`).then(async () => {
+  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);');
+  console.log('Database tables & bundle_price column verified successfully.');
+}).catch(err => console.log('DB Setup Error:', err.message));
 
 // Role status check endpoint
 app.get('/api/role-status', async (req, res) => {
@@ -121,7 +132,7 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Create Order (WALAY minus stock dinhi, kay maghulat pa sa approval sa worker)
+// Create Order (Dili pa mo-minus ang stock dire, maghulat sa approval)
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
   try {
@@ -135,7 +146,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// Update Order Status (DINHI ra maminusan ang stock kung i-approve o i-deliver na sa worker)
+// Update Order Status (Dinhi ra maminusan ang stock kung i-approve o i-deliver na sa worker)
 app.put('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -147,7 +158,6 @@ app.put('/api/orders/:id/status', async (req, res) => {
     
     const order = orderRes.rows[0];
     
-    // Kung gikan sa 'Pending' ug gi-update ngadto sa 'Approved' o 'Delivered', kuhaan na ang stock
     if (order.status === 'Pending' && (status === 'Approved' || status === 'Delivered')) {
       let items = order.items;
       if (typeof items === 'string') {
