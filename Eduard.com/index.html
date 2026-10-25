@@ -51,11 +51,11 @@
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h3 class="font-black text-gray-800 text-base flex items-center gap-2">
-          <i data-lucide="refresh-cw" class="w-5 h-5 text-indigo-600"></i> Restock & Edit Prices
+          <i data-lucide="refresh-cw" class="w-5 h-5 text-indigo-600"></i> Restock & Edit Product
         </h3>
         <button type="button" onclick="window.app.closeRestockModal()" class="text-gray-400 hover:text-rose-600"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
-      <form onsubmit="window.app.submitRestock(event)" class="space-y-4">
+      <form onsubmit="window.app.submitRestock(event)" class="space-y-3">
         <input type="hidden" id="restock-prod-id">
         <div>
           <label class="block text-xs font-bold text-gray-700 mb-1">Product Item:</label>
@@ -64,16 +64,16 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-bold text-gray-700 mb-1">1pcs Price (₱):</label>
-            <input type="number" id="restock-prod-price" step="0.01" min="1" required class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-indigo-900 outline-none focus:border-indigo-600">
+            <input type="number" id="restock-prod-price" step="0.01" min="1" required class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-indigo-900 outline-none">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-gray-700 mb-1">Bundle (12pcs) Price (₱):</label>
-            <input type="number" id="restock-prod-bundle-price" step="0.01" min="1" required class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-emerald-700 outline-none focus:border-emerald-600">
+            <input type="number" id="restock-prod-bundle-price" step="0.01" min="1" required class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-emerald-700 outline-none">
           </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-700 mb-1">Add Additional Stock (+ Units):</label>
-          <input type="number" id="restock-add-qty" min="0" value="0" required class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-amber-700 outline-none focus:border-amber-600">
+          <input type="number" id="restock-add-qty" min="0" value="0" required class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-amber-700 outline-none">
         </div>
         <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow text-xs flex items-center justify-center gap-2">
           <i data-lucide="check" class="w-4 h-4"></i> Save Product Settings
@@ -161,9 +161,9 @@
       </div>
       <div class="mb-4">
         <label class="block text-xs font-black text-indigo-900 mb-1">Assign Order to Worker:</label>
-        <select id="select-worker-assign" class="w-full px-3 py-2 bg-indigo-50 border-2 border-indigo-200 rounded-xl text-xs font-black text-indigo-950 outline-none focus:border-indigo-600">
-          <option value="Worker 1" class="font-black text-gray-900">Worker 1</option>
-          <option value="Worker 2" class="font-black text-gray-900">Worker 2</option>
+        <select id="select-worker-assign" class="w-full px-3 py-2 bg-indigo-50 border-2 border-indigo-200 rounded-xl text-xs font-black text-indigo-950 outline-none">
+          <option value="Worker 1">Worker 1</option>
+          <option value="Worker 2">Worker 2</option>
         </select>
       </div>
       <div class="mb-6">
@@ -215,12 +215,12 @@
 
           <div id="worker-choice-container" class="hidden transition-all duration-300">
             <label class="block text-xs font-semibold text-indigo-900 mb-1">Select Worker Slot <span class="text-rose-500">*</span></label>
-            <select id="reg-worker-choice" class="w-full px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm font-bold text-indigo-950 outline-none focus:border-indigo-500"></select>
+            <select id="reg-worker-choice" class="w-full px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm font-bold text-indigo-950 outline-none"></select>
           </div>
 
           <div id="location-field-container" class="hidden transition-all duration-300">
             <label class="block text-xs font-semibold text-gray-700 mb-1">Delivery Location / Complete Address</label>
-            <input type="text" id="reg-location" placeholder="Street, Barangay, City/Province" class="w-full px-4 py-2.5 bg-amber-50/50 border border-amber-200 rounded-xl text-sm outline-none focus:border-amber-500">
+            <input type="text" id="reg-location" placeholder="Street, Barangay, City/Province" class="w-full px-4 py-2.5 bg-amber-50/50 border border-amber-200 rounded-xl text-sm outline-none">
           </div>
 
           <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
@@ -313,7 +313,7 @@
             <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i> Assigned Client Orders
           </h2>
           <div class="relative w-full sm:w-64">
-            <input type="text" id="worker-order-search" oninput="window.app.renderViews()" placeholder="Search Order ID or Client..." class="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs outline-none focus:border-indigo-600">
+            <input type="text" id="worker-order-search" oninput="window.app.renderViews()" placeholder="Search Order ID or Client..." class="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs outline-none">
             <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-2.5 top-2"></i>
           </div>
         </div>
@@ -420,13 +420,13 @@
         </div>
       </div>
 
-      <!-- OWNER ADD PRODUCT FORM -->
+      <!-- OWNER ADD PRODUCT FORM (AUTOMATIC PRESET PHOTO) -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
           <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add Product
         </h2>
         <form onsubmit="window.app.addProduct(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-          <input type="text" id="prod-name" placeholder="Product Name" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
+          <input type="text" id="prod-name" placeholder="Product Name (e.g. Ballpen, Paper)" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-price" min="1" step="0.01" placeholder="1 pcs price" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-bundle-price" min="1" step="0.01" placeholder="1 bundle price" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-stock" min="1" placeholder="Stock" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
@@ -465,6 +465,24 @@
       orders: [],
       cart: [],
       activeCheckoutItems: [],
+
+      // PRESET IMAGE HELPER LOGIC
+      getAutomaticProductImage: function(productName) {
+        const name = (productName || '').toLowerCase();
+        if (name.includes('pen') || name.includes('ballpen')) {
+          return 'https://images.unsplash.com/photo-1585336261026-8f57863968b9?w=400&q=80';
+        } else if (name.includes('paper') || name.includes('bond')) {
+          return 'https://images.unsplash.com/photo-1517842645767-c639042777db?w=400&q=80';
+        } else if (name.includes('notebook') || name.includes('book')) {
+          return 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80';
+        } else if (name.includes('pencil')) {
+          return 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80';
+        } else if (name.includes('folder') || name.includes('file')) {
+          return 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&q=80';
+        }
+        // DEFAULT HIGHER QUALITY SCHOOL SUPPLY IMAGE
+        return 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80';
+      },
 
       init: async function() {
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -677,12 +695,12 @@
           } else {
             clientGrid.innerHTML = this.products.map(p => {
               const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
+              const imgSrc = p.image_url || this.getAutomaticProductImage(p.name);
+
               return `
-              <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between">
+              <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between overflow-hidden">
                 <div>
-                  <div class="w-full h-28 bg-amber-50 rounded-2xl flex items-center justify-center mb-3">
-                    <i data-lucide="package" class="w-10 h-10 text-amber-500"></i>
-                  </div>
+                  <img src="${imgSrc}" class="w-full h-32 object-cover rounded-2xl mb-3 shadow-inner" alt="${p.name}">
                   <h3 class="font-bold text-gray-800 text-base">${p.name} <span class="text-xs font-semibold text-gray-500">(Bundle (12pcs))</span></h3>
                   <p class="text-xs mt-0.5 font-bold ${p.stock <= 50 ? 'text-rose-600' : 'text-gray-500'}">
                     Stock Left: <span>${p.stock} units ${p.stock <= 50 ? '⚠️' : ''}</span>
@@ -735,7 +753,6 @@
                     </div>
                   </div>
 
-                  <!-- Items Summary -->
                   <div class="bg-white p-2.5 rounded-xl border border-indigo-100 space-y-1">
                     <p class="text-[10px] font-extrabold text-gray-400 uppercase">Items Ordered:</p>
                     ${Array.isArray(parsedItems) ? parsedItems.map(i => `
@@ -779,10 +796,10 @@
                     <div class="text-[11px] text-gray-500">Worker: ${o.assigned_worker} | Total: ₱${parseFloat(o.total_amount).toFixed(2)}</div>
                   </div>
                   <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="window.app.openReceiptModal('${o.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs px-3 py-1.5 border border-indigo-200 rounded-xl hover:bg-indigo-50 transition font-bold flex items-center gap-1">
+                    <button onclick="window.app.openReceiptModal('${o.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs px-3 py-1.5 border border-indigo-200 rounded-xl hover:bg-indigo-50 font-bold flex items-center gap-1">
                       <i data-lucide="receipt" class="w-3.5 h-3.5"></i> Details
                     </button>
-                    <button onclick="window.app.deleteHistory('${o.id}')" class="text-rose-500 hover:text-rose-700 text-xs px-3 py-1.5 border border-rose-200 rounded-xl hover:bg-rose-50 transition font-bold flex items-center gap-1 shrink-0">
+                    <button onclick="window.app.deleteHistory('${o.id}')" class="text-rose-500 hover:text-rose-700 text-xs px-3 py-1.5 border border-rose-200 rounded-xl hover:bg-rose-50 font-bold flex items-center gap-1 shrink-0">
                       <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
                     </button>
                   </div>
@@ -834,7 +851,10 @@
               const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
               return `
               <tr>
-                <td class="p-3 font-semibold text-gray-800">${p.name}</td>
+                <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
+                  <img src="${p.image_url || this.getAutomaticProductImage(p.name)}" class="w-8 h-8 rounded-lg object-cover">
+                  <span>${p.name}</span>
+                </td>
                 <td class="p-3 text-xs font-bold text-indigo-900">1pcs: ₱${pcPrice} <br><span class="text-emerald-700">Bundle (12pcs): ₱${bndlPrice}</span></td>
                 <td class="p-3">
                   <span class="text-xs px-2.5 py-1 rounded-full font-extrabold ${isLowStock ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-amber-100 text-amber-800'}">
@@ -857,9 +877,13 @@
         if(ownerInvTable && this.currentUser && this.currentUser.role === 'Owner') {
           ownerInvTable.innerHTML = this.products.map(p => {
             const isLowStock = p.stock <= 50;
+            const imgSrc = p.image_url || this.getAutomaticProductImage(p.name);
             return `
             <tr class="${isLowStock ? 'bg-rose-50/50' : ''}">
-              <td class="p-3 font-semibold text-gray-800">${p.name}</td>
+              <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
+                <img src="${imgSrc}" class="w-8 h-8 rounded-lg object-cover">
+                <span>${p.name}</span>
+              </td>
               <td class="p-3 font-bold text-indigo-700">₱ ${parseFloat(p.price).toFixed(2)}</td>
               <td class="p-3 font-bold text-emerald-700">₱ ${parseFloat(p.bundle_price || p.price * 10).toFixed(2)}</td>
               <td class="p-3">
@@ -974,7 +998,7 @@
           });
           const data = await res.json();
           if(data.success) {
-            this.showToast('Product prices & stock updated!');
+            this.showToast('Product updated successfully!');
             this.closeRestockModal();
             this.fetchServerData();
           }
@@ -989,7 +1013,7 @@
         const salePrice = type === 'bundle' ? (prod.bundle_price || prod.price * 10) : prod.price;
 
         if(!prod || prod.stock < qtyToDeduct) {
-          return this.showToast(`Kuwang ang stock! (${prod.stock} units na lang ang nabilin)`);
+          return this.showToast(`Kuwang ang stock! (${prod.stock} units left)`);
         }
 
         const walkInId = 'WALK-' + Date.now().toString().slice(-6);
@@ -1018,11 +1042,11 @@
               body: JSON.stringify({ status: 'Delivered' })
             });
 
-            this.showToast(`Walk-in sale narekord! Nabawasan ang stock og ${qtyToDeduct}.`);
+            this.showToast(`Walk-in sale recorded! Stock reduced by ${qtyToDeduct}.`);
             await this.fetchServerData();
             this.openReceiptModal(walkInId);
           } else {
-            this.showToast(data.message || 'Napakyas sa pagrekord sa walk-in sale.');
+            this.showToast(data.message || 'Walk-in sale failed.');
           }
         } catch(e) {
           this.showToast('Server connection error.');
@@ -1036,7 +1060,7 @@
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
         const cartItem = this.cart.find(c => c.product_id === prodId);
         if(cartItem) {
-          if(cartItem.quantity + 12 > prod.stock) return this.showToast('Cannot exceed available product stock!');
+          if(cartItem.quantity + 12 > prod.stock) return this.showToast('Cannot exceed available stock!');
           cartItem.quantity += 12;
         } else {
           this.cart.push({ 
@@ -1059,7 +1083,7 @@
           this.cart.splice(index, 1);
           this.showToast('Item removed from cart.');
         } else if(newQty > item.maxStock) {
-          this.showToast('Cannot exceed available product stock!');
+          this.showToast('Cannot exceed available stock!');
         } else {
           item.quantity = newQty;
         }
@@ -1245,6 +1269,8 @@
           return this.showToast('Palihug i-fill up ang tanang husto nga detalye sa produkto!');
         }
 
+        const autoImage = this.getAutomaticProductImage(name);
+
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/products`, {
             method: 'POST',
@@ -1254,12 +1280,13 @@
               price: price, 
               bundle_price: bundle_price, 
               bundle_qty: 12, 
-              stock: stock 
+              stock: stock,
+              image_url: autoImage
             })
           });
           const data = await res.json();
           if(data.success) {
-            this.showToast('Bag-ong produkto napuno na sa imbentaryo!');
+            this.showToast('Bag-ong produkto napuno na uban ang litrato!');
             e.target.reset();
             this.fetchServerData();
           } else {
