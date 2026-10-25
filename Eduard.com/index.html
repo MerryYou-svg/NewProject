@@ -959,7 +959,7 @@
         const salePrice = type === 'bundle' ? (prod.bundle_price || prod.price * 10) : prod.price;
 
         if(!prod || prod.stock < qtyToDeduct) {
-          return this.showToast(`Stock insufficient! (${prod.stock} units left)`);
+          return this.showToast(`Kuwang ang stock! (${prod.stock} units na lang ang nabilin)`);
         }
 
         const walkInId = 'WALK-' + Date.now().toString().slice(-6);
@@ -988,11 +988,11 @@
               body: JSON.stringify({ status: 'Delivered' })
             });
 
-            this.showToast(`Walk-in sale recorded! Stock deducted by ${qtyToDeduct}.`);
+            this.showToast(`Walk-in sale narekord! Nabawasan ang stock og ${qtyToDeduct}.`);
             await this.fetchServerData();
             this.openReceiptModal(walkInId);
           } else {
-            this.showToast('Failed to record walk-in sale.');
+            this.showToast(data.message || 'Napakyas sa pagrekord sa walk-in sale.');
           }
         } catch(e) {
           this.showToast('Server connection error.');
