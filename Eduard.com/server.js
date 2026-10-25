@@ -11,10 +11,9 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// I-recreate ang products table aron masiguro nga naapil ang bundle_price column
+// Automatic table creation ug verification para sa products ug orders
 pool.query(`
-  DROP TABLE IF EXISTS products CASCADE;
-  CREATE TABLE products (
+  CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
@@ -23,8 +22,22 @@ pool.query(`
     stock INT NOT NULL,
     sold_units INT DEFAULT 0
   );
-`).then(() => {
-  console.log('Products table re-created successfully with bundle_price!');
+
+  CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(50) PRIMARY KEY,
+    client_name VARCHAR(255) NOT NULL,
+    client_address TEXT,
+    total_amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(50),
+    assigned_worker VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'Pending',
+    items JSONB,
+    created_at TIMESTAMP DEFAULT NOW()
+  );
+`).then(async () => {
+  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);');
+  await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB;');
+  console.log('Database tables and columns verified successfully.');
 }).catch(err => console.log('DB Setup Error:', err.message));
 
 // Role status check endpoint
