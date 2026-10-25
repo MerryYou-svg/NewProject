@@ -11,7 +11,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic table creation and verification para sa users, products, at orders
+// Automatic table creation and verification para sa users, products, ug orders
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -72,13 +72,12 @@ app.get('/api/role-status', async (req, res) => {
   }
 });
 
-// Register endpoint nga naay striktong validation sa Owner ug Workers (1 ra ka account matag usa)
+// Register endpoint
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
     let finalRole = role;
     
-    // Susiha kung taken na ba ang Owner
     if (role === 'Owner') {
       const ownerCheck = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
       if (ownerCheck.rows.length > 0) {
@@ -86,7 +85,6 @@ app.post('/api/register', async (req, res) => {
       }
     }
     
-    // Susiha kung taken na ba ang Worker 1 o Worker 2
     if (role === 'Worker') {
       finalRole = worker_choice || 'Worker 1';
       const workerCheck = await pool.query("SELECT * FROM users WHERE role = $1", [finalRole]);
@@ -120,11 +118,33 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Clear Users endpoint (Gigamit ang app.get para madaling ma-access sa browser URL bar)
+// --- CLEAR DATABASE ENDPOINTS ---
+
+// 1. Clear Users endpoint
 app.get('/api/clear-users', async (req, res) => {
   try {
     await pool.query('DELETE FROM users');
     res.json({ success: true, message: 'All users have been cleared successfully!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 2. Clear Orders & Transaction History endpoint
+app.get('/api/clear-orders', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM orders');
+    res.json({ success: true, message: 'Tanang orders ug transaction history napatay na!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 3. Clear Inventory Products endpoint
+app.get('/api/clear-products', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM products');
+    res.json({ success: true, message: 'Tanang test products sa inventory napatay na!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -179,7 +199,7 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Create Order (Awtomatikong binabawasan ang stock kung walk-in na Delivered na agad ang status)
+// Create Order
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
   try {
