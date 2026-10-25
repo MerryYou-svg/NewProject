@@ -96,8 +96,8 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Clear Users endpoint (Para ma-clear ang tanang users sa database)
-app.delete('/api/clear-users', async (req, res) => {
+// Clear Users endpoint (Gigamit ang app.get aron ma-access dayon sa browser URL bar)
+app.get('/api/clear-users', async (req, res) => {
   try {
     await pool.query('DELETE FROM users');
     res.json({ success: true, message: 'All users have been cleared successfully!' });
