@@ -11,8 +11,18 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic table creation and verification
+// Automatic table creation and verification para sa users, products, at orders
 pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    worker_choice VARCHAR(50),
+    delivery_address TEXT
+  );
+
   CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -35,9 +45,11 @@ pool.query(`
     created_at TIMESTAMP DEFAULT NOW()
   );
 `).then(async () => {
+  await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS worker_choice VARCHAR(50);');
+  await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS delivery_address TEXT;');
   await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);');
   await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB;');
-  console.log('Database tables and columns verified successfully.');
+  console.log('All database tables and columns verified successfully.');
 }).catch(err => console.log('DB Setup Error:', err.message));
 
 // Role status check endpoint
@@ -96,7 +108,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Clear Users endpoint (Gigamit ang app.get aron ma-access dayon sa browser URL bar)
+// Clear Users endpoint (Ginagamit ang app.get para madaling ma-access sa browser URL bar)
 app.get('/api/clear-users', async (req, res) => {
   try {
     await pool.query('DELETE FROM users');
@@ -155,7 +167,7 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Create Order (Awtomatikong maminusan ang stock kung walk-in nga Delivered dayon ang status)
+// Create Order (Awtomatikong binabawasan ang stock kung walk-in na Delivered na agad ang status)
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
   try {
