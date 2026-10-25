@@ -480,7 +480,6 @@
         } else if (name.includes('folder') || name.includes('file')) {
           return 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400&q=80';
         }
-        // DEFAULT HIGHER QUALITY SCHOOL SUPPLY IMAGE
         return 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80';
       },
 
@@ -695,7 +694,8 @@
           } else {
             clientGrid.innerHTML = this.products.map(p => {
               const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
-              const imgSrc = p.image_url || this.getAutomaticProductImage(p.name);
+              // Pwersahon nato pagkuha ang automatic image base sa ngalan sa produkto
+              const imgSrc = this.getAutomaticProductImage(p.name);
 
               return `
               <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between overflow-hidden">
@@ -849,10 +849,11 @@
               const isLowStock = p.stock <= 50;
               const pcPrice = parseFloat(p.price).toFixed(2);
               const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
+              const imgSrc = this.getAutomaticProductImage(p.name);
               return `
               <tr>
                 <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
-                  <img src="${p.image_url || this.getAutomaticProductImage(p.name)}" class="w-8 h-8 rounded-lg object-cover">
+                  <img src="${imgSrc}" class="w-8 h-8 rounded-lg object-cover">
                   <span>${p.name}</span>
                 </td>
                 <td class="p-3 text-xs font-bold text-indigo-900">1pcs: ₱${pcPrice} <br><span class="text-emerald-700">Bundle (12pcs): ₱${bndlPrice}</span></td>
@@ -877,7 +878,7 @@
         if(ownerInvTable && this.currentUser && this.currentUser.role === 'Owner') {
           ownerInvTable.innerHTML = this.products.map(p => {
             const isLowStock = p.stock <= 50;
-            const imgSrc = p.image_url || this.getAutomaticProductImage(p.name);
+            const imgSrc = this.getAutomaticProductImage(p.name);
             return `
             <tr class="${isLowStock ? 'bg-rose-50/50' : ''}">
               <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
@@ -1269,8 +1270,6 @@
           return this.showToast('Palihug i-fill up ang tanang husto nga detalye sa produkto!');
         }
 
-        const autoImage = this.getAutomaticProductImage(name);
-
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/products`, {
             method: 'POST',
@@ -1280,8 +1279,7 @@
               price: price, 
               bundle_price: bundle_price, 
               bundle_qty: 12, 
-              stock: stock,
-              image_url: autoImage
+              stock: stock
             })
           });
           const data = await res.json();
