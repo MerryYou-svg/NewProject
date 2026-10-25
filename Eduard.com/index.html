@@ -1066,7 +1066,7 @@
               <div class="flex items-center gap-1.5 shrink-0">
                 <button onclick="window.app.changeCartQty(${index}, -1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg flex items-center justify-center text-xs text-gray-700">-</button>
                 <span class="w-6 text-center text-xs font-black">${item.quantity / 12}</span>
-.                <button onclick="window.app.changeCartQty(${index}, 1)" class="w-7 h-7 bg-indigo-100 hover:bg-indigo-200 font-bold rounded-lg flex items-center justify-center text-xs text-indigo-700">+</button>
+                <button onclick="window.app.changeCartQty(${index}, 1)" class="w-7 h-7 bg-indigo-100 hover:bg-indigo-200 font-bold rounded-lg flex items-center justify-center text-xs text-indigo-700">+</button>
                 <button onclick="window.app.removeFromCart(${index})" class="text-rose-500 hover:text-rose-700 p-1 ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
@@ -1119,7 +1119,7 @@
         }).join('');
 
         document.getElementById('checkout-total-price').innerText = `₱ ${total.toFixed(2)}`;
-        document.getElementById('checkout-modal').classList.remove('hidden');
+        document.getElementById('checkout-modal').classList.add('hidden');
       },
 
       closeCheckoutModal: function() {
@@ -1211,22 +1211,32 @@
         const bundle_price = parseFloat(document.getElementById('prod-bundle-price').value);
         const stock = parseInt(document.getElementById('prod-stock').value);
 
-        if(!name || isNaN(price) || isNaN(stock)) return this.showToast('Please complete all product details!');
+        if(!name || isNaN(price) || isNaN(bundle_price) || isNaN(stock)) {
+          return this.showToast('Palihug i-fill up ang tanang husto nga detalye sa produkto!');
+        }
 
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/products`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, price, bundle_price, bundle_qty: 12, stock })
+            body: JSON.stringify({ 
+              name: name, 
+              price: price, 
+              bundle_price: bundle_price, 
+              bundle_qty: 12, 
+              stock: stock 
+            })
           });
           const data = await res.json();
           if(data.success) {
-            this.showToast('New product added successfully!');
+            this.showToast('Bag-ong produkto napuno na sa imbentaryo!');
             e.target.reset();
             this.fetchServerData();
+          } else {
+            this.showToast(data.message || 'Napakyas sa pagdugang sa produkto.');
           }
-        } catch(e) {
-          this.showToast('Error adding product.');
+        } catch(err) {
+          this.showToast('Connection error sa server.');
         }
       }
     };
