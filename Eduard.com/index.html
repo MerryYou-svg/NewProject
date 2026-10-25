@@ -420,13 +420,12 @@
         </div>
       </div>
 
-      <!-- OWNER ADD PRODUCT FORM (AUTOMATIC PRESET PHOTO) -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
           <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add Product
         </h2>
         <form onsubmit="window.app.addProduct(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-          <input type="text" id="prod-name" placeholder="Product Name (e.g. Ballpen, Paper)" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
+          <input type="text" id="prod-name" placeholder="Product Name (e.g. Ballpen, Ruler)" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-price" min="1" step="0.01" placeholder="1 pcs price" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-bundle-price" min="1" step="0.01" placeholder="1 bundle price" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-stock" min="1" placeholder="Stock" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
@@ -466,21 +465,22 @@
       cart: [],
       activeCheckoutItems: [],
 
-      // PRESET STABLE IMAGE HELPER LOGIC
       getAutomaticProductImage: function(productName) {
         const name = (productName || '').toLowerCase();
         if (name.includes('pen') || name.includes('ballpen')) {
-          return 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=400&q=80';
+          return 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=600&q=80';
         } else if (name.includes('paper') || name.includes('bond')) {
-          return 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=400&q=80';
+          return 'https://images.unsplash.com/photo-1569683795645-b62e50fbf103?auto=format&fit=crop&w=600&q=80';
         } else if (name.includes('notebook') || name.includes('book')) {
-          return 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80';
+          return 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80';
         } else if (name.includes('pencil')) {
-          return 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&w=400&q=80';
+          return 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=600&q=80';
+        } else if (name.includes('ruler') || name.includes('scale')) {
+          return 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80';
         } else if (name.includes('folder') || name.includes('file')) {
-          return 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80';
+          return 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80';
         }
-        return 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=400&q=80';
+        return 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80';
       },
 
       init: async function() {
@@ -542,18 +542,10 @@
           if (role === 'Worker') {
             workerChoiceBox.classList.remove('hidden');
             workerSelect.innerHTML = '';
-
-            if (!status.worker1Taken) {
-              workerSelect.innerHTML += `<option value="Worker 1">Worker 1 (Available)</option>`;
-            } else {
-              workerSelect.innerHTML += `<option value="Worker 1" disabled class="bg-gray-200 text-gray-400">Worker 1 (Taken)</option>`;
-            }
-
-            if (!status.worker2Taken) {
-              workerSelect.innerHTML += `<option value="Worker 2">Worker 2 (Available)</option>`;
-            } else {
-              workerSelect.innerHTML += `<option value="Worker 2" disabled class="bg-gray-200 text-gray-400">Worker 2 (Taken)</option>`;
-            }
+            if (!status.worker1Taken) workerSelect.innerHTML += `<option value="Worker 1">Worker 1 (Available)</option>`;
+            else workerSelect.innerHTML += `<option value="Worker 1" disabled class="bg-gray-200 text-gray-400">Worker 1 (Taken)</option>`;
+            if (!status.worker2Taken) workerSelect.innerHTML += `<option value="Worker 2">Worker 2 (Available)</option>`;
+            else workerSelect.innerHTML += `<option value="Worker 2" disabled class="bg-gray-200 text-gray-400">Worker 2 (Taken)</option>`;
           } else {
             workerChoiceBox.classList.add('hidden');
           }
@@ -654,11 +646,6 @@
           navInfo.classList.add('flex');
           document.getElementById('nav-user-name').innerText = this.currentUser.full_name;
           document.getElementById('nav-user-role').innerText = this.currentUser.role;
-
-          const workerSelect = document.getElementById('worker-filter-select');
-          if (workerSelect && this.currentUser.role.startsWith('Worker')) {
-            workerSelect.value = this.currentUser.role;
-          }
         } else {
           navInfo.classList.add('hidden');
           navInfo.classList.remove('flex');
@@ -699,7 +686,7 @@
               return `
               <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between overflow-hidden">
                 <div>
-                  <img src="${imgSrc}" class="w-full h-32 object-cover rounded-2xl mb-3 shadow-inner" alt="${p.name}">
+                  <img src="${imgSrc}" class="w-full h-32 object-contain bg-gray-50 rounded-2xl mb-3 shadow-inner p-2" alt="${p.name}">
                   <h3 class="font-bold text-gray-800 text-base">${p.name} <span class="text-xs font-semibold text-gray-500">(Bundle (12pcs))</span></h3>
                   <p class="text-xs mt-0.5 font-bold ${p.stock <= 50 ? 'text-rose-600' : 'text-gray-500'}">
                     Stock Left: <span>${p.stock} units ${p.stock <= 50 ? '⚠️' : ''}</span>
@@ -729,112 +716,41 @@
             const historyOrders = myOrders.filter(o => o.status === 'Delivered' || o.status === 'Cancelled');
 
             activeContainer.innerHTML = activeOrders.length === 0 ? `<p class="text-gray-400 text-xs font-bold">No active pending orders.</p>` :
-              activeOrders.map(o => {
-                const isApproved = o.status === 'Approved';
-                let parsedItems = o.items;
-                if(typeof parsedItems === 'string') {
-                  try { parsedItems = JSON.parse(parsedItems); } catch(e){}
-                }
-                const formattedDate = new Date(o.created_at || Date.now()).toLocaleString();
-
-                return `
+              activeOrders.map(o => `
                 <div class="border rounded-2xl p-4 bg-indigo-50/50 space-y-3">
-                  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
-                    <div>
-                      <span class="font-black text-xs text-indigo-950">${o.id}</span>
-                      <span class="text-[11px] text-gray-500 block">Assigned Worker: <b class="text-indigo-700">${o.assigned_worker}</b></span>
-                      <span class="text-[10px] text-gray-500 block">Date: <b>${formattedDate}</b></span>
-                      <span class="text-[10px] text-gray-500 block">Delivery Address: <b class="text-gray-700">${o.client_address || 'N/A'}</b></span>
-                    </div>
-                    <div class="text-right">
-                      <div class="font-black text-indigo-600 text-sm">₱${parseFloat(o.total_amount).toFixed(2)}</div>
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span>
-                    </div>
+                  <div class="flex justify-between items-center">
+                    <span class="font-black text-xs text-indigo-950">${o.id}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span>
                   </div>
-
-                  <div class="bg-white p-2.5 rounded-xl border border-indigo-100 space-y-1">
-                    <p class="text-[10px] font-extrabold text-gray-400 uppercase">Items Ordered:</p>
-                    ${Array.isArray(parsedItems) ? parsedItems.map(i => `
-                      <div class="flex justify-between text-xs">
-                        <span class="font-semibold text-gray-700">${i.name || 'Product'} (${i.quantity || i.qty || 1} units)</span>
-                        <span class="font-bold text-indigo-900">₱${parseFloat(i.price * ((i.quantity || i.qty || 1)/12)).toFixed(2)}</span>
-                      </div>
-                    `).join('') : '<span class="text-xs text-gray-500">Direct order items</span>'}
-                  </div>
-
-                  <div class="pt-2 border-t border-indigo-100 flex justify-between items-center">
-                    <div class="flex-grow pr-4">
-                      <div class="flex items-center justify-between text-[10px] font-extrabold mb-1">
-                        <span class="text-indigo-800">1. Order Placed</span>
-                        <span class="${isApproved ? 'text-emerald-700' : 'text-gray-400'}">2. Approved</span>
-                        <span class="text-gray-400">3. Delivered</span>
-                      </div>
-                      <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden flex">
-                        <div class="bg-indigo-600 h-full w-1/3"></div>
-                        <div class="${isApproved ? 'bg-emerald-500' : 'bg-transparent'} h-full w-1/3 transition-all duration-500"></div>
-                        <div class="bg-transparent h-full w-1/3"></div>
-                      </div>
-                    </div>
-                    ${o.status === 'Pending' ? `
-                      <button onclick="window.app.updateOrderStatus('${o.id}', 'Cancelled')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-xl transition shrink-0">
-                        Cancel Order
-                      </button>
-                    ` : ''}
-                  </div>
+                  <div class="text-xs text-gray-600">Total: <b>₱${parseFloat(o.total_amount).toFixed(2)}</b> | Worker: <b>${o.assigned_worker}</b></div>
                 </div>
-              `}).join('');
+              `).join('');
 
             historyContainer.innerHTML = historyOrders.length === 0 ? `<p class="text-gray-400 text-xs font-bold">No completed order history.</p>` :
               historyOrders.map(o => `
-                <div class="border rounded-2xl p-4 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <div class="space-y-1">
-                    <div class="flex items-center space-x-2">
-                      <span class="font-black text-xs text-gray-700">${o.id}</span>
-                      <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold ${o.status === 'Delivered' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${o.status}</span>
-                    </div>
-                    <div class="text-[11px] text-gray-500">Worker: ${o.assigned_worker} | Total: ₱${parseFloat(o.total_amount).toFixed(2)}</div>
-                  </div>
-                  <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="window.app.openReceiptModal('${o.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs px-3 py-1.5 border border-indigo-200 rounded-xl hover:bg-indigo-50 font-bold flex items-center gap-1">
-                      <i data-lucide="receipt" class="w-3.5 h-3.5"></i> Details
-                    </button>
-                    <button onclick="window.app.deleteHistory('${o.id}')" class="text-rose-500 hover:text-rose-700 text-xs px-3 py-1.5 border border-rose-200 rounded-xl hover:bg-rose-50 font-bold flex items-center gap-1 shrink-0">
-                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
-                    </button>
-                  </div>
+                <div class="border rounded-2xl p-4 bg-gray-50 flex justify-between items-center">
+                  <span class="font-bold text-xs">${o.id} - ₱${parseFloat(o.total_amount).toFixed(2)}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">${o.status}</span>
                 </div>
               `).join('');
           }
         }
 
         const workerOrdersTable = document.getElementById('worker-orders-table');
-        const workerTotalSalesEl = document.getElementById('worker-total-sales');
-        const searchQuery = (document.getElementById('worker-order-search')?.value || '').toLowerCase().trim();
-
         if(this.currentUser && this.currentUser.role.startsWith('Worker')) {
           const workerOrders = this.orders.filter(o => o.assigned_worker === this.currentUser.role);
-          const totalWorkerRevenue = workerOrders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
-          if(workerTotalSalesEl) workerTotalSalesEl.innerText = `₱ ${totalWorkerRevenue.toFixed(2)}`;
-
           if(workerOrdersTable) {
-            let filteredOrders = workerOrders;
-            if (searchQuery) {
-              filteredOrders = filteredOrders.filter(o => o.id.toLowerCase().includes(searchQuery) || o.client_name.toLowerCase().includes(searchQuery));
-            }
-
-            workerOrdersTable.innerHTML = filteredOrders.length === 0 ? `<tr><td colspan="6" class="text-center p-4 text-xs font-bold text-gray-400">No orders found.</td></tr>` :
-              filteredOrders.map(o => `
+            workerOrdersTable.innerHTML = workerOrders.length === 0 ? `<tr><td colspan="6" class="text-center p-4 text-xs font-bold text-gray-400">No orders found.</td></tr>` :
+              workerOrders.map(o => `
                 <tr>
                   <td class="p-3 font-bold text-xs">${o.id}</td>
                   <td class="p-3 font-semibold text-xs">${o.client_name}</td>
                   <td class="p-3 font-black text-xs text-indigo-700">₱${parseFloat(o.total_amount).toFixed(2)}</td>
                   <td class="p-3 text-xs">${o.payment_method}</td>
-                  <td class="p-3"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : o.status === 'Delivered' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td>
+                  <td class="p-3"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${o.status}</span></td>
                   <td class="p-3 text-center space-x-1">
-                    ${o.status === 'Pending' ? `<button onclick="window.app.updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Approve</button>` : ''}
-                    ${o.status === 'Approved' ? `<button onclick="window.app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Deliver</button>` : ''}
-                    <button onclick="window.app.openReceiptModal('${o.id}')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold px-2 py-1 rounded-xl">Details</button>
-                    <button onclick="window.app.deleteHistory('${o.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-[11px] font-bold px-2 py-1 rounded-xl">Delete</button>
+                    ${o.status === 'Pending' ? `<button onclick="window.app.updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Approve</button>` : ''}
+                    ${o.status === 'Approved' ? `<button onclick="window.app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Deliver</button>` : ''}
                   </td>
                 </tr>
               `).join('');
@@ -843,138 +759,52 @@
 
         const workerInvTable = document.getElementById('worker-inventory-table');
         if(workerInvTable && this.currentUser && this.currentUser.role.startsWith('Worker')) {
-          workerInvTable.innerHTML = this.products.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-gray-400">No products available.</td></tr>` :
-            this.products.map(p => {
-              const isLowStock = p.stock <= 50;
-              const pcPrice = parseFloat(p.price).toFixed(2);
-              const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
-              const imgSrc = this.getAutomaticProductImage(p.name);
-              return `
+          workerInvTable.innerHTML = this.products.map(p => {
+            const imgSrc = this.getAutomaticProductImage(p.name);
+            return `
               <tr>
                 <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
-                  <img src="${imgSrc}" class="w-8 h-8 rounded-lg object-cover">
+                  <img src="${imgSrc}" class="w-8 h-8 object-contain bg-gray-50 rounded-lg p-0.5">
                   <span>${p.name}</span>
                 </td>
-                <td class="p-3 text-xs font-bold text-indigo-900">1pcs: ₱${pcPrice} <br><span class="text-emerald-700">Bundle (12pcs): ₱${bndlPrice}</span></td>
-                <td class="p-3">
-                  <span class="text-xs px-2.5 py-1 rounded-full font-extrabold ${isLowStock ? 'bg-rose-100 text-rose-700 border border-rose-300' : 'bg-amber-100 text-amber-800'}">
-                    ${p.stock} units ${isLowStock ? '⚠️ LOW' : ''}
-                  </span>
-                </td>
-                <td class="p-3 text-center flex items-center justify-center gap-1.5">
-                  <button type="button" onclick="window.app.workerWalkInSale(${p.id}, 'piece')" ${p.stock < 1 ? 'disabled' : ''} class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-200 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition shadow">
-                    +1pcs (₱${pcPrice})
-                  </button>
-                  <button type="button" onclick="window.app.workerWalkInSale(${p.id}, 'bundle')" ${p.stock < 12 ? 'disabled' : ''} class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition shadow">
-                    📦 Bundle (12pcs) (₱${bndlPrice})
-                  </button>
+                <td class="p-3 text-xs font-bold">1pcs: ₱${p.price} | Bundle: ₱${p.bundle_price || p.price * 10}</td>
+                <td class="p-3 text-xs font-extrabold">${p.stock} units</td>
+                <td class="p-3 text-center">
+                  <button onclick="window.app.workerWalkInSale(${p.id}, 'bundle')" class="bg-indigo-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Sell Bundle</button>
                 </td>
               </tr>
-            `}).join('');
+            `;
+          }).join('');
         }
 
         const ownerInvTable = document.getElementById('owner-inventory-table');
         if(ownerInvTable && this.currentUser && this.currentUser.role === 'Owner') {
           ownerInvTable.innerHTML = this.products.map(p => {
-            const isLowStock = p.stock <= 50;
             const imgSrc = this.getAutomaticProductImage(p.name);
             return `
-            <tr class="${isLowStock ? 'bg-rose-50/50' : ''}">
+            <tr>
               <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
-                <img src="${imgSrc}" class="w-8 h-8 rounded-lg object-cover">
+                <img src="${imgSrc}" class="w-8 h-8 object-contain bg-gray-50 rounded-lg p-0.5">
                 <span>${p.name}</span>
               </td>
               <td class="p-3 font-bold text-indigo-700">₱ ${parseFloat(p.price).toFixed(2)}</td>
               <td class="p-3 font-bold text-emerald-700">₱ ${parseFloat(p.bundle_price || p.price * 10).toFixed(2)}</td>
-              <td class="p-3">
-                <span class="text-xs px-2.5 py-1 rounded-full font-black ${isLowStock ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-100 text-amber-800'}">
-                  ${p.stock} units ${isLowStock ? '⚠️ LOW' : ''}
-                </span>
-              </td>
+              <td class="p-3 text-xs font-black">${p.stock} units</td>
               <td class="p-3 text-center">
-                <button type="button" onclick="window.app.openRestockModal(${p.id}, '${p.name}', ${p.price}, ${p.bundle_price || p.price * 10})" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow flex items-center justify-center gap-1 mx-auto">
-                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Restock / Edit
-                </button>
+                <button onclick="window.app.openRestockModal(${p.id}, '${p.name}', ${p.price}, ${p.bundle_price || p.price * 10})" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Restock</button>
               </td>
             </tr>
           `}).join('');
         }
 
-        const w1Table = document.getElementById('owner-worker1-table');
-        const w2Table = document.getElementById('owner-worker2-table');
-        const ownerTotalSalesEl = document.getElementById('owner-total-sales');
-        const ownerW1TotalEl = document.getElementById('owner-w1-total');
-        const ownerW2TotalEl = document.getElementById('owner-w2-total');
-
-        if(w1Table && w2Table && this.currentUser && this.currentUser.role === 'Owner') {
-          const w1Orders = this.orders.filter(o => o.assigned_worker === 'Worker 1');
-          const w2Orders = this.orders.filter(o => o.assigned_worker === 'Worker 2');
-          
-          const w1Sales = w1Orders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
-          const w2Sales = w2Orders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
-          const totalStoreRevenue = w1Sales + w2Sales;
-
-          if(ownerW1TotalEl) ownerW1TotalEl.innerText = `₱ ${w1Sales.toFixed(2)}`;
-          if(ownerW2TotalEl) ownerW2TotalEl.innerText = `₱ ${w2Sales.toFixed(2)}`;
-          if(ownerTotalSalesEl) ownerTotalSalesEl.innerText = `₱ ${totalStoreRevenue.toFixed(2)}`;
-
-          w1Table.innerHTML = w1Orders.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-gray-400">No orders for Worker 1.</td></tr>` : 
-            w1Orders.map(o => `<tr><td class="p-2">${o.id}</td><td class="p-2">${o.client_name}</td><td class="p-2 font-bold">₱${parseFloat(o.total_amount).toFixed(2)}</td><td class="p-2">${o.status}</td></tr>`).join('');
-
-          w2Table.innerHTML = w2Orders.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-gray-400">No orders for Worker 2.</td></tr>` : 
-            w2Orders.map(o => `<tr><td class="p-2">${o.id}</td><td class="p-2">${o.client_name}</td><td class="p-2 font-bold">₱${parseFloat(o.total_amount).toFixed(2)}</td><td class="p-2">${o.status}</td></tr>`).join('');
-        }
-
-        const cartCountEl = document.getElementById('cart-count');
-        if(cartCountEl) cartCountEl.innerText = this.cart.reduce((sum, item) => sum + (item.quantity / 12), 0);
-
         if (typeof lucide !== 'undefined') lucide.createIcons();
-      },
-
-      openReceiptModal: function(orderId) {
-        const order = this.orders.find(o => o.id === orderId);
-        if(!order) return this.showToast('Transaction details not found!');
-
-        document.getElementById('rec-id').innerText = order.id;
-        document.getElementById('rec-client').innerText = order.client_name;
-        document.getElementById('rec-address').innerText = order.client_address || 'Walk-in Counter';
-        document.getElementById('rec-worker').innerText = order.assigned_worker;
-        document.getElementById('rec-date').innerText = new Date(order.created_at || Date.now()).toLocaleString();
-        document.getElementById('rec-total').innerText = `₱ ${parseFloat(order.total_amount).toFixed(2)}`;
-
-        const itemsList = document.getElementById('rec-items-list');
-        let parsedItems = order.items;
-        if(typeof parsedItems === 'string') {
-          try { parsedItems = JSON.parse(parsedItems); } catch(e){}
-        }
-
-        if (parsedItems && Array.isArray(parsedItems) && parsedItems.length > 0) {
-          itemsList.innerHTML = parsedItems.map(i => `
-            <div class="flex justify-between items-center bg-white p-2 rounded-xl border text-gray-800">
-              <div>
-                <p class="font-black text-xs text-indigo-950">${i.name || 'Product Item'}</p>
-                <p class="text-[10px] text-gray-500 font-bold">Qty: ${i.quantity || i.qty || 1} unit/s</p>
-              </div>
-              <span class="font-extrabold text-indigo-700 text-xs">₱ ${parseFloat(i.price).toFixed(2)}</span>
-            </div>
-          `).join('');
-        } else {
-          itemsList.innerHTML = `<div class="flex justify-between text-gray-600 bg-white p-2 rounded-xl border"><span>Direct Counter Sale</span><span class="font-bold">₱ ${parseFloat(order.total_amount).toFixed(2)}</span></div>`;
-        }
-
-        document.getElementById('receipt-modal').classList.remove('hidden');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-      },
-
-      closeReceiptModal: function() {
-        document.getElementById('receipt-modal').classList.add('hidden');
       },
 
       openRestockModal: function(id, name, price, bundlePrice) {
         document.getElementById('restock-prod-id').value = id;
         document.getElementById('restock-prod-name').value = name;
         document.getElementById('restock-prod-price').value = price;
-        document.getElementById('restock-prod-bundle-price').value = bundlePrice || price * 10;
+        document.getElementById('restock-prod-bundle-price').value = bundlePrice;
         document.getElementById('restock-add-qty').value = 0;
         document.getElementById('restock-modal').classList.remove('hidden');
       },
@@ -990,272 +820,13 @@
         const bundle_price = parseFloat(document.getElementById('restock-prod-bundle-price').value);
         const add_stock = parseInt(document.getElementById('restock-add-qty').value);
 
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/products/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ price, bundle_price, bundle_qty: 12, add_stock })
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.showToast('Product updated successfully!');
-            this.closeRestockModal();
-            this.fetchServerData();
-          }
-        } catch(e) {
-          this.showToast('Failed to update product.');
-        }
-      },
-
-      workerWalkInSale: async function(prodId, type = 'piece') {
-        const prod = this.products.find(p => p.id === prodId);
-        const qtyToDeduct = type === 'bundle' ? 12 : 1;
-        const salePrice = type === 'bundle' ? (prod.bundle_price || prod.price * 10) : prod.price;
-
-        if(!prod || prod.stock < qtyToDeduct) {
-          return this.showToast(`Kuwang ang stock! (${prod.stock} units left)`);
-        }
-
-        const walkInId = 'WALK-' + Date.now().toString().slice(-6);
-        const walkInOrderPayload = {
-          id: walkInId,
-          client_name: 'Walk-in Customer',
-          client_address: 'Counter Direct Sale',
-          total_amount: salePrice,
-          payment_method: 'Cash',
-          assigned_worker: this.currentUser.role,
-          status: 'Delivered',
-          items: [{ product_id: prod.id, name: `${prod.name} (${type === 'bundle' ? 'Bundle (12pcs)' : '1pcs'})`, price: salePrice, quantity: qtyToDeduct }]
-        };
-
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(walkInOrderPayload)
-          });
-          const data = await res.json();
-          if(data.success) {
-            await fetch(`${this.API_BASE_URL}/api/orders/${walkInId}/status`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'Delivered' })
-            });
-
-            this.showToast(`Walk-in sale recorded! Stock reduced by ${qtyToDeduct}.`);
-            await this.fetchServerData();
-            this.openReceiptModal(walkInId);
-          } else {
-            this.showToast(data.message || 'Walk-in sale failed.');
-          }
-        } catch(e) {
-          this.showToast('Server connection error.');
-        }
-      },
-
-      addToCart: function(prodId) {
-        const prod = this.products.find(p => p.id === prodId);
-        if(!prod) return;
-
-        const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
-        const cartItem = this.cart.find(c => c.product_id === prodId);
-        if(cartItem) {
-          if(cartItem.quantity + 12 > prod.stock) return this.showToast('Cannot exceed available stock!');
-          cartItem.quantity += 12;
-        } else {
-          this.cart.push({ 
-            product_id: prod.id, 
-            name: `${prod.name} (Bundle (12pcs))`, 
-            price: bndlPrice, 
-            quantity: 12, 
-            maxStock: prod.stock 
-          });
-        }
-        this.showToast(`${prod.name} (Bundle) added to cart!`);
-        this.renderViews();
-      },
-
-      changeCartQty: function(index, delta) {
-        const item = this.cart[index];
-        if(!item) return;
-        const newQty = item.quantity + (delta * 12);
-        if(newQty <= 0) {
-          this.cart.splice(index, 1);
-          this.showToast('Item removed from cart.');
-        } else if(newQty > item.maxStock) {
-          this.showToast('Cannot exceed available stock!');
-        } else {
-          item.quantity = newQty;
-        }
-        this.openCartModal();
-        this.renderViews();
-      },
-
-      directBuyNow: function(prodId) {
-        const prod = this.products.find(p => p.id === prodId);
-        if(!prod || prod.stock < 12) return this.showToast('Product bundle is out of stock!');
-        const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
-        this.activeCheckoutItems = [{ 
-          product_id: prod.id, 
-          name: `${prod.name} (Bundle (12pcs))`, 
-          price: bndlPrice, 
-          quantity: 12 
-        }];
-        this.showCheckoutModal();
-      },
-
-      openCartModal: function() {
-        if(this.cart.length === 0) return this.showToast('Your shopping cart is empty!');
-        const cartList = document.getElementById('cart-item-list');
-        let total = 0;
-        cartList.innerHTML = this.cart.map((item, index) => {
-          const itemTotal = item.price * (item.quantity / 12);
-          total += itemTotal;
-          return `
-            <div class="py-3 flex justify-between items-center gap-2">
-              <div class="flex-grow">
-                <p class="font-bold text-gray-800 text-xs">${item.name}</p>
-                <p class="text-[11px] text-gray-400">₱${parseFloat(item.price).toFixed(2)} x ${item.quantity / 12} bundle(s) = <span class="font-bold text-indigo-600">₱${itemTotal.toFixed(2)}</span></p>
-              </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <button onclick="window.app.changeCartQty(${index}, -1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg flex items-center justify-center text-xs text-gray-700">-</button>
-                <span class="w-6 text-center text-xs font-black">${item.quantity / 12}</span>
-                <button onclick="window.app.changeCartQty(${index}, 1)" class="w-7 h-7 bg-indigo-100 hover:bg-indigo-200 font-bold rounded-lg flex items-center justify-center text-xs text-indigo-700">+</button>
-                <button onclick="window.app.removeFromCart(${index})" class="text-rose-500 hover:text-rose-700 p-1 ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-          `;
-        }).join('');
-        document.getElementById('cart-total-price').innerText = `₱ ${total.toFixed(2)}`;
-        document.getElementById('cart-modal').classList.remove('hidden');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-      },
-
-      closeCartModal: function() {
-        document.getElementById('cart-modal').classList.add('hidden');
-      },
-
-      removeFromCart: function(index) {
-        this.cart.splice(index, 1);
-        this.openCartModal();
-        this.renderViews();
-      },
-
-      proceedToCheckoutFromCart: function() {
-        if(this.cart.length === 0) return;
-        this.activeCheckoutItems = [...this.cart];
-        this.closeCartModal();
-        this.showCheckoutModal();
-      },
-
-      showCheckoutModal: function() {
-        const summaryList = document.getElementById('checkout-summary-list');
-        const addressBox = document.getElementById('modal-delivery-address');
-        const addressText = document.getElementById('client-address-text');
-        
-        if (this.currentUser && this.currentUser.delivery_address) {
-          addressBox.classList.remove('hidden');
-          addressText.innerText = this.currentUser.delivery_address;
-        } else {
-          addressBox.classList.add('hidden');
-        }
-
-        let total = 0;
-        summaryList.innerHTML = this.activeCheckoutItems.map(item => {
-          const subtotal = item.price * (item.quantity / 12);
-          total += subtotal;
-          return `
-            <div class="py-1.5 flex justify-between items-center text-xs">
-              <span class="font-bold text-gray-700">${item.name} (${item.quantity / 12} bundle/s)</span>
-              <span class="font-black text-indigo-600">₱${subtotal.toFixed(2)}</span>
-            </div>
-          `;
-        }).join('');
-
-        document.getElementById('checkout-total-price').innerText = `₱ ${total.toFixed(2)}`;
-        document.getElementById('checkout-modal').classList.remove('hidden');
-      },
-
-      closeCheckoutModal: function() {
-        document.getElementById('checkout-modal').classList.add('hidden');
-      },
-
-      confirmPayment: async function() {
-        const assigned_worker = document.getElementById('select-worker-assign').value;
-        const payment_method = document.querySelector('input[name="payment-method"]:checked').value;
-        const client_address = this.currentUser.delivery_address || 'N/A';
-
-        const total_amount = this.activeCheckoutItems.reduce((sum, item) => sum + (item.price * (item.quantity / 12)), 0);
-        const orderId = 'ORD-' + Date.now().toString().slice(-6);
-
-        const orderData = {
-          id: orderId,
-          client_name: this.currentUser.full_name,
-          client_address: client_address,
-          total_amount: total_amount,
-          payment_method: payment_method,
-          assigned_worker: assigned_worker,
-          status: 'Pending',
-          items: this.activeCheckoutItems
-        };
-
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.showToast(`Order placed successfully under ${assigned_worker}!`);
-            this.cart = [];
-            this.activeCheckoutItems = [];
-            this.closeCheckoutModal();
-            this.fetchServerData();
-          } else {
-            this.showToast(data.message || 'Failed to place order.');
-          }
-        } catch(e) {
-          this.showToast('Server error during checkout.');
-        }
-      },
-
-      updateOrderStatus: async function(orderId, status) {
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/orders/${orderId}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.showToast(`Order ${orderId} updated to ${status}!`);
-            this.fetchServerData();
-          }
-        } catch(e) {
-          this.showToast('Failed to update order status.');
-        }
-      },
-
-      deleteHistory: async function(orderId) {
-        if(this.currentUser && this.currentUser.role === 'Owner') {
-          return this.showToast('Admin/Owner cannot delete orders from inventory records!');
-        }
-        if(!confirm('Are you sure you want to delete this order from your history?')) return;
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/orders/history/${orderId}`, {
-            method: 'DELETE'
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.showToast('Order history item deleted.');
-            this.fetchServerData();
-          } else {
-            this.showToast(data.message || 'Failed to delete history.');
-          }
-        } catch(e) {
-          this.showToast('Server connection error.');
-        }
+        await fetch(`${this.API_BASE_URL}/api/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ price, bundle_price, bundle_qty: 12, add_stock })
+        });
+        this.closeRestockModal();
+        this.fetchServerData();
       },
 
       addProduct: async function(e) {
@@ -1265,33 +836,19 @@
         const bundle_price = parseFloat(document.getElementById('prod-bundle-price').value);
         const stock = parseInt(document.getElementById('prod-stock').value);
 
-        if(!name || isNaN(price) || isNaN(bundle_price) || isNaN(stock)) {
-          return this.showToast('Palihug i-fill up ang tanang husto nga detalye sa produkto!');
-        }
+        await fetch(`${this.API_BASE_URL}/api/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, price, bundle_price, bundle_qty: 12, stock })
+        });
+        e.target.reset();
+        this.fetchServerData();
+      },
 
-        try {
-          const res = await fetch(`${this.API_BASE_URL}/api/products`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              name: name, 
-              price: price, 
-              bundle_price: bundle_price, 
-              bundle_qty: 12, 
-              stock: stock
-            })
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.showToast('Bag-ong produkto napuno na uban ang litrato!');
-            e.target.reset();
-            this.fetchServerData();
-          } else {
-            this.showToast(data.message || 'Napakyas sa pagdugang sa produkto.');
-          }
-        } catch(err) {
-          this.showToast('Connection error sa server.');
-        }
+      logout: function() {
+        localStorage.removeItem('currentUser');
+        this.currentUser = null;
+        this.navigateTo('login');
       }
     };
 
