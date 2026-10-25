@@ -96,6 +96,16 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Clear Users endpoint (Para ma-clear ang tanang users sa database)
+app.delete('/api/clear-users', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM users');
+    res.json({ success: true, message: 'All users have been cleared successfully!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Get Products
 app.get('/api/products', async (req, res) => {
   try {
@@ -145,7 +155,7 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Create Order (Kung walk-in nga 'Delivered' dayon ang status, maminusan dayon ang stock dinhi pa lang)
+// Create Order (Awtomatikong maminusan ang stock kung walk-in nga Delivered dayon ang status)
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
   try {
@@ -154,7 +164,6 @@ app.post('/api/orders', async (req, res) => {
       [id, client_name, client_address, total_amount, payment_method, assigned_worker, status, JSON.stringify(items)]
     );
     
-    // Kung walk-in o diretso nga Delivered ang status, i-deduct dayon ang stock
     if (status === 'Delivered' && items) {
       let parsedItems = items;
       if (typeof parsedItems === 'string') {
@@ -177,7 +186,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// Update Order Status (Para sa regular client orders nga gi-approve o gi-deliver sa worker)
+// Update Order Status
 app.put('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
