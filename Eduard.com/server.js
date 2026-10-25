@@ -11,7 +11,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic table creation ug verification para sa products ug orders
+// Automatic table creation and verification
 pool.query(`
   CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
@@ -145,7 +145,7 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Create Order (Dili pa mo-minus ang stock dire, maghulat sa approval)
+// Create Order (Kung walk-in nga 'Delivered' dayon ang status, maminusan dayon ang stock dinhi pa lang)
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
   try {
@@ -153,13 +153,31 @@ app.post('/api/orders', async (req, res) => {
       'INSERT INTO orders (id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())',
       [id, client_name, client_address, total_amount, payment_method, assigned_worker, status, JSON.stringify(items)]
     );
+    
+    // Kung walk-in o diretso nga Delivered ang status, i-deduct dayon ang stock
+    if (status === 'Delivered' && items) {
+      let parsedItems = items;
+      if (typeof parsedItems === 'string') {
+        try { parsedItems = JSON.parse(parsedItems); } catch (e) {}
+      }
+      if (Array.isArray(parsedItems)) {
+        for (let item of parsedItems) {
+          const qtyDeduct = item.quantity || item.qty || 1;
+          await pool.query(
+            'UPDATE products SET stock = stock - $1, sold_units = COALESCE(sold_units, 0) + $1 WHERE id = $2',
+            [qtyDeduct, item.product_id || item.id]
+          );
+        }
+      }
+    }
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// Update Order Status (Dinhi ra maminusan ang stock kung i-approve o i-deliver na sa worker)
+// Update Order Status (Para sa regular client orders nga gi-approve o gi-deliver sa worker)
 app.put('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
