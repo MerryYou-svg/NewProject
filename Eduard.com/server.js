@@ -11,9 +11,10 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic tablecreation ug bundle_price column verification
+// I-recreate ang products table aron masiguro nga naapil ang bundle_price column
 pool.query(`
-  CREATE TABLE IF NOT EXISTS products (
+  DROP TABLE IF EXISTS products CASCADE;
+  CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
@@ -22,9 +23,8 @@ pool.query(`
     stock INT NOT NULL,
     sold_units INT DEFAULT 0
   );
-`).then(async () => {
-  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);');
-  console.log('Database tables & bundle_price column verified successfully.');
+`).then(() => {
+  console.log('Products table re-created successfully with bundle_price!');
 }).catch(err => console.log('DB Setup Error:', err.message));
 
 // Role status check endpoint
