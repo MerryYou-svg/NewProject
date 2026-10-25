@@ -1119,7 +1119,7 @@
         }).join('');
 
         document.getElementById('checkout-total-price').innerText = `₱ ${total.toFixed(2)}`;
-        document.getElementById('checkout-modal').classList.add('hidden');
+        document.getElementById('checkout-modal').classList.remove('hidden');
       },
 
       closeCheckoutModal: function() {
