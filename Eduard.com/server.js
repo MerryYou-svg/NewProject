@@ -62,10 +62,8 @@ app.get('/api/role-status', async (req, res) => {
     
     usersRes.rows.forEach(u => {
       if (u.role === 'Owner') ownerTaken = true;
-      if (u.role === 'Worker' || u.worker_choice === 'Worker 1') {
-        if (u.role === 'Worker 1' || u.worker_choice === 'Worker 1') worker1Taken = true;
-        if (u.role === 'Worker 2' || u.worker_choice === 'Worker 2') worker2Taken = true;
-      }
+      if (u.role === 'Worker 1' || u.worker_choice === 'Worker 1') worker1Taken = true;
+      if (u.role === 'Worker 2' || u.worker_choice === 'Worker 2') worker2Taken = true;
     });
     
     res.json({ ownerTaken, worker1Taken, worker2Taken });
@@ -74,13 +72,27 @@ app.get('/api/role-status', async (req, res) => {
   }
 });
 
-// Register endpoint
+// Register endpoint nga naay striktong validation sa Owner ug Workers (1 ra ka account matag usa)
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
     let finalRole = role;
+    
+    // Susiha kung taken na ba ang Owner
+    if (role === 'Owner') {
+      const ownerCheck = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
+      if (ownerCheck.rows.length > 0) {
+        return res.status(400).json({ success: false, message: 'Naa na nay Owner ang sistema! Usa ra ka Owner ang gikinahanglan.' });
+      }
+    }
+    
+    // Susiha kung taken na ba ang Worker 1 o Worker 2
     if (role === 'Worker') {
       finalRole = worker_choice || 'Worker 1';
+      const workerCheck = await pool.query("SELECT * FROM users WHERE role = $1", [finalRole]);
+      if (workerCheck.rows.length > 0) {
+        return res.status(400).json({ success: false, message: `${finalRole} kay taken na o naa nay nag-angkon! Palihug pilia ang laing worker slot.` });
+      }
     }
     
     const newUser = await pool.query(
@@ -108,7 +120,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Clear Users endpoint (Ginagamit ang app.get para madaling ma-access sa browser URL bar)
+// Clear Users endpoint (Gigamit ang app.get para madaling ma-access sa browser URL bar)
 app.get('/api/clear-users', async (req, res) => {
   try {
     await pool.query('DELETE FROM users');
