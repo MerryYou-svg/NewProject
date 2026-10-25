@@ -11,6 +11,11 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// Automatic nga pag-add sa bundle_price column kung wala pa kini sa database
+pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);')
+  .then(() => console.log('Database checked: bundle_price column is ready.'))
+  .catch(err => console.log('DB Column Check Error:', err.message));
+
 // Role status check endpoint
 app.get('/api/role-status', async (req, res) => {
   try {
