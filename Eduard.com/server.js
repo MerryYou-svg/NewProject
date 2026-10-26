@@ -11,7 +11,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic table creation & verification uban ang image_url
+// Automatic table creation and verification para sa users, products, ug orders
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -30,8 +30,7 @@ pool.query(`
     bundle_price DECIMAL(10,2),
     bundle_qty INT DEFAULT 12,
     stock INT NOT NULL,
-    sold_units INT DEFAULT 0,
-    image_url TEXT
+    sold_units INT DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS orders (
@@ -49,7 +48,6 @@ pool.query(`
   await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS worker_choice VARCHAR(50);');
   await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS delivery_address TEXT;');
   await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);');
-  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;');
   await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB;');
   console.log('All database tables and columns verified successfully.');
 }).catch(err => console.log('DB Setup Error:', err.message));
@@ -83,7 +81,7 @@ app.post('/api/register', async (req, res) => {
     if (role === 'Owner') {
       const ownerCheck = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
       if (ownerCheck.rows.length > 0) {
-        return res.status(400).json({ success: false, message: 'Naa na nay Owner ang sistema!' });
+        return res.status(400).json({ success: false, message: 'Naa na nay Owner ang sistema! Usa ra ka Owner ang gikinahanglan.' });
       }
     }
     
@@ -91,7 +89,7 @@ app.post('/api/register', async (req, res) => {
       finalRole = worker_choice || 'Worker 1';
       const workerCheck = await pool.query("SELECT * FROM users WHERE role = $1", [finalRole]);
       if (workerCheck.rows.length > 0) {
-        return res.status(400).json({ success: false, message: `${finalRole} kay taken na!` });
+        return res.status(400).json({ success: false, message: `${finalRole} kay taken na o naa nay nag-angkon! Palihug pilia ang laing worker slot.` });
       }
     }
     
@@ -120,16 +118,19 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Clear Database endpoints
+// --- CLEAR DATABASE ENDPOINTS ---
+
+// 1. Clear Users endpoint
 app.get('/api/clear-users', async (req, res) => {
   try {
     await pool.query('DELETE FROM users');
-    res.json({ success: true, message: 'All users cleared successfully!' });
+    res.json({ success: true, message: 'All users have been cleared successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
+// 2. Clear Orders & Transaction History endpoint
 app.get('/api/clear-orders', async (req, res) => {
   try {
     await pool.query('DELETE FROM orders');
@@ -139,6 +140,7 @@ app.get('/api/clear-orders', async (req, res) => {
   }
 });
 
+// 3. Clear Inventory Products endpoint
 app.get('/api/clear-products', async (req, res) => {
   try {
     await pool.query('DELETE FROM products');
@@ -160,11 +162,11 @@ app.get('/api/products', async (req, res) => {
 
 // Add Product
 app.post('/api/products', async (req, res) => {
-  const { name, price, bundle_price, bundle_qty, stock, image_url } = req.body;
+  const { name, price, bundle_price, bundle_qty, stock } = req.body;
   try {
     const newProd = await pool.query(
-      'INSERT INTO products (name, price, bundle_price, bundle_qty, stock, image_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [name, price, bundle_price, bundle_qty || 12, stock, image_url || null]
+      'INSERT INTO products (name, price, bundle_price, bundle_qty, stock) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [name, price, bundle_price, bundle_qty || 12, stock]
     );
     res.json({ success: true, product: newProd.rows[0] });
   } catch (err) {
@@ -175,11 +177,11 @@ app.post('/api/products', async (req, res) => {
 // Update Product / Restock
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
-  const { price, bundle_price, bundle_qty, add_stock, image_url } = req.body;
+  const { price, bundle_price, bundle_qty, add_stock } = req.body;
   try {
     await pool.query(
-      'UPDATE products SET price = $1, bundle_price = $2, bundle_qty = $3, stock = stock + $4, image_url = COALESCE($5, image_url) WHERE id = $6',
-      [price, bundle_price, bundle_qty || 12, add_stock || 0, image_url || null, id]
+      'UPDATE products SET price = $1, bundle_price = $2, bundle_qty = $3, stock = stock + $4 WHERE id = $5',
+      [price, bundle_price, bundle_qty || 12, add_stock || 0, id]
     );
     res.json({ success: true });
   } catch (err) {
