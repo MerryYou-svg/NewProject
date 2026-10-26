@@ -11,7 +11,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Automatic table creation and verification para sa users, products, ug orders
+// Automatic table creation and verification para sa users, products, at orders
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -72,12 +72,13 @@ app.get('/api/role-status', async (req, res) => {
   }
 });
 
-// Register endpoint
+// Register endpoint nga naay striktong validation sa Owner ug Workers (1 ra ka account matag usa)
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
     let finalRole = role;
     
+    // Susiha kung taken na ba ang Owner
     if (role === 'Owner') {
       const ownerCheck = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
       if (ownerCheck.rows.length > 0) {
@@ -85,6 +86,7 @@ app.post('/api/register', async (req, res) => {
       }
     }
     
+    // Susiha kung taken na ba ang Worker 1 o Worker 2
     if (role === 'Worker') {
       finalRole = worker_choice || 'Worker 1';
       const workerCheck = await pool.query("SELECT * FROM users WHERE role = $1", [finalRole]);
@@ -118,29 +120,11 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Clear DB Endpoints
+// Clear Users endpoint (Gigamit ang app.get para madaling ma-access sa browser URL bar)
 app.get('/api/clear-users', async (req, res) => {
   try {
     await pool.query('DELETE FROM users');
     res.json({ success: true, message: 'All users have been cleared successfully!' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-app.get('/api/clear-orders', async (req, res) => {
-  try {
-    await pool.query('DELETE FROM orders');
-    res.json({ success: true, message: 'Tanang orders ug transaction history napatay na!' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-app.get('/api/clear-products', async (req, res) => {
-  try {
-    await pool.query('DELETE FROM products');
-    res.json({ success: true, message: 'Tanang test products sa inventory napatay na!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -195,37 +179,23 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// Create Order (Updated with stock checking)
+// Create Order (Awtomatikong binabawasan ang stock kung walk-in na Delivered na agad ang status)
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
   try {
-    let parsedItems = items;
-    if (typeof parsedItems === 'string') {
-      try { parsedItems = JSON.parse(parsedItems); } catch (e) {}
-    }
-
-    if (Array.isArray(parsedItems)) {
-      for (let item of parsedItems) {
-        const prodId = item.product_id || item.id;
-        const qtyNeeded = item.quantity || item.qty || 12;
-        
-        const prodRes = await pool.query('SELECT stock, name FROM products WHERE id = $1', [prodId]);
-        if (prodRes.rows.length === 0) {
-          return res.status(400).json({ success: false, message: `Wala makita ang produkto sa imbentaryo.` });
-        }
-        
-        const currentStock = prodRes.rows[0].stock;
-        if (currentStock < qtyNeeded) {
-          return res.status(400).json({ 
-            success: false, 
-            message: `Kulang ang stock para sa ${prodRes.rows[0].name}! (Available: ${currentStock}, Needed: ${qtyNeeded})` 
-          });
-        }
+    await pool.query(
+      'INSERT INTO orders (id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())',
+      [id, client_name, client_address, total_amount, payment_method, assigned_worker, status, JSON.stringify(items)]
+    );
+    
+    if (status === 'Delivered' && items) {
+      let parsedItems = items;
+      if (typeof parsedItems === 'string') {
+        try { parsedItems = JSON.parse(parsedItems); } catch (e) {}
       }
-
-      if (status === 'Delivered') {
+      if (Array.isArray(parsedItems)) {
         for (let item of parsedItems) {
-          const qtyDeduct = item.quantity || item.qty || 12;
+          const qtyDeduct = item.quantity || item.qty || 1;
           await pool.query(
             'UPDATE products SET stock = stock - $1, sold_units = COALESCE(sold_units, 0) + $1 WHERE id = $2',
             [qtyDeduct, item.product_id || item.id]
@@ -233,19 +203,14 @@ app.post('/api/orders', async (req, res) => {
         }
       }
     }
-
-    await pool.query(
-      'INSERT INTO orders (id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())',
-      [id, client_name, client_address, total_amount, payment_method, assigned_worker, status, JSON.stringify(items)]
-    );
     
-    res.json({ success: true, message: 'Order placed successfully!' });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// Update Order Status (Updated with safe stock deduction)
+// Update Order Status
 app.put('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -266,15 +231,6 @@ app.put('/api/orders/:id/status', async (req, res) => {
       if (items && Array.isArray(items)) {
         for (let item of items) {
           const qtyDeduct = item.quantity || item.qty || 12;
-          
-          const prodCheck = await pool.query('SELECT stock, name FROM products WHERE id = $1', [item.product_id || item.id]);
-          if (prodCheck.rows.length > 0 && prodCheck.rows[0].stock < qtyDeduct) {
-            return res.status(400).json({ 
-              success: false, 
-              message: `Dili ma-approve: Kulang ang stock sa ${prodCheck.rows[0].name}!` 
-            });
-          }
-
           await pool.query(
             'UPDATE products SET stock = stock - $1, sold_units = COALESCE(sold_units, 0) + $1 WHERE id = $2',
             [qtyDeduct, item.product_id || item.id]
@@ -284,7 +240,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
     }
     
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
-    res.json({ success: true, message: `Order status updated to ${status}!` });
+    res.json({ success: true, message: `Order status updated to ${status} and stock deducted!` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
