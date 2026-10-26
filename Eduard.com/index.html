@@ -213,8 +213,8 @@
               <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice}</p>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-4">
-              <button type="button" onclick="addToCart(${p.id})" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">Add Bundle</button>
-              <button type="button" onclick="buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">Buy Bundle</button>
+              <button type="button" onclick="alert('CLICKED ADD: ${p.id}'); addToCart(${p.id})" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">Add Bundle</button>
+              <button type="button" onclick="alert('CLICKED BUY: ${p.id}'); buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">Buy Bundle</button>
             </div>
           </div>
         `;
@@ -222,7 +222,6 @@
     }
 
     function addToCart(id) {
-      alert('Gipindot ang Add Cart ID: ' + id); // Test alert para masiguro nga mo-reaksyon
       const prod = products.find(p => p.id === id);
       if(!prod) return;
       const price = parseFloat(prod.bundle_price || prod.price * 10);
@@ -238,7 +237,6 @@
     }
 
     function buyNow(id) {
-      alert('Gipindot ang Buy Now ID: ' + id); // Test alert para masiguro nga mo-reaksyon
       const prod = products.find(p => p.id === id);
       if(!prod) return;
       const price = parseFloat(prod.bundle_price || prod.price * 10);
