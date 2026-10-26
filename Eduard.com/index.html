@@ -113,23 +113,45 @@
         <h2 class="text-lg font-bold text-gray-800 mb-4">Available Bundle Products</h2>
         <div id="client-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
       </div>
+
+      <!-- ACTIVE ORDERS & HISTORY SECTIONS (GI-BALIK ARON KOMPLETO) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
+          <h2 class="text-lg font-bold text-gray-800 mb-4">Active Orders</h2>
+          <div id="client-active-orders" class="space-y-3">
+            <p class="text-gray-400 text-xs">Walay aktibong order karon.</p>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
+          <h2 class="text-lg font-bold text-gray-800 mb-4">Order History</h2>
+          <div id="client-order-history" class="space-y-3">
+            <p class="text-gray-400 text-xs">Walay kasaysayan sa order.</p>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
+  <!-- JAVASCRIPT CODE -->
   <script>
     const API_URL = 'https://eds-backend-jo6g.onrender.com';
     
     let currentUser = null;
     let products = [];
+    let orders = [];
     let cart = [];
     let activeCheckoutItems = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        const res = await fetch(`${API_URL}/api/products`);
-        if(res.ok) products = await res.json();
+        const [prodRes, orderRes] = await Promise.all([
+          fetch(`${API_URL}/api/products`),
+          fetch(`${API_URL}/api/orders`)
+        ]);
+        if(prodRes.ok) products = await prodRes.json();
+        if(orderRes.ok) orders = await orderRes.json();
       } catch(e) {
-        console.error(e);
+        console.error("Error loading initial data:", e);
       }
 
       const savedUser = localStorage.getItem('currentUser');
@@ -192,6 +214,7 @@
       document.getElementById('nav-user-name').innerText = currentUser.full_name;
       document.getElementById('nav-user-role').innerText = currentUser.role;
       renderProducts();
+      renderClientOrders();
     }
 
     function renderProducts() {
@@ -213,12 +236,28 @@
               <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice}</p>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-4">
-              <button type="button" onclick="alert('CLICKED ADD: ${p.id}'); addToCart(${p.id})" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">Add Bundle</button>
-              <button type="button" onclick="alert('CLICKED BUY: ${p.id}'); buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">Buy Bundle</button>
+              <button type="button" onclick="addToCart(${p.id})" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">Add Bundle</button>
+              <button type="button" onclick="buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">Buy Bundle</button>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function renderClientOrders() {
+      const activeDiv = document.getElementById('client-active-orders');
+      const historyDiv = document.getElementById('client-order-history');
+      if(!activeDiv || !historyDiv || !currentUser) return;
+
+      const userOrders = orders.filter(o => o.client_name === currentUser.full_name);
+      const active = userOrders.filter(o => o.status !== 'Delivered');
+      const history = userOrders.filter(o => o.status === 'Delivered');
+
+      activeDiv.innerHTML = active.length === 0 ? `<p class="text-gray-400 text-xs">Walay aktibong order karon.</p>` :
+        active.map(o => `<div class="p-3 bg-indigo-50 rounded-2xl text-xs flex justify-between items-center"><span><b>${o.id}</b> - ₱${o.total_amount}</span><span class="font-bold text-amber-600">${o.status}</span></div>`).join('');
+
+      historyDiv.innerHTML = history.length === 0 ? `<p class="text-gray-400 text-xs">Walay kasaysayan sa order.</p>` :
+        history.map(o => `<div class="p-3 bg-gray-50 rounded-2xl text-xs flex justify-between items-center"><span><b>${o.id}</b></span><span class="font-bold text-emerald-600">Completed</span></div>`).join('');
     }
 
     function addToCart(id) {
@@ -315,6 +354,13 @@
           cart = [];
           document.getElementById('cart-count').innerText = '0';
           closeCheckout();
+          
+          // Refresh orders list
+          const orderRes = await fetch(`${API_URL}/api/orders`);
+          if(orderRes.ok) {
+            orders = await orderRes.json();
+            renderClientOrders();
+          }
         } else {
           alert(data.message || 'Error placing order');
         }
