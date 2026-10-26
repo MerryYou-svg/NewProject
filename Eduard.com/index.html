@@ -24,7 +24,7 @@
           <p id="nav-user-name" class="text-xs font-bold text-gray-200">User</p>
           <span id="nav-user-role" class="text-[10px] font-bold uppercase bg-amber-400 text-indigo-950 px-2 py-0.5 rounded-full">Role</span>
         </div>
-        <button type="button" onclick="app.logout()" class="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer">Log Out</button>
+        <button type="button" id="logout-btn" class="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer">Log Out</button>
       </div>
     </div>
   </header>
@@ -39,7 +39,7 @@
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h3 class="font-black text-gray-800 text-lg">Shopping Cart</h3>
-        <button type="button" onclick="app.closeCartModal()" class="text-gray-400 hover:text-rose-600 font-bold text-xl cursor-pointer">✕</button>
+        <button type="button" id="close-cart-btn" class="text-gray-400 hover:text-rose-600 font-bold text-xl cursor-pointer">✕</button>
       </div>
       <div id="cart-item-list" class="space-y-3 overflow-y-auto my-2 flex-grow divide-y"></div>
       <div class="border-t pt-4 mt-2">
@@ -47,7 +47,7 @@
           <span class="text-xs font-bold text-amber-900">Total Cart Amount:</span>
           <span id="cart-total-price" class="text-lg font-black text-indigo-700">₱ 0.00</span>
         </div>
-        <button type="button" onclick="app.proceedCheckout()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl shadow-lg cursor-pointer">Proceed to Checkout</button>
+        <button type="button" id="checkout-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl shadow-lg cursor-pointer">Proceed to Checkout</button>
       </div>
     </div>
   </div>
@@ -57,7 +57,7 @@
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3 mb-4">
         <h3 class="font-black text-gray-800 text-lg">Confirm Order</h3>
-        <button type="button" onclick="app.closeCheckout()" class="text-gray-400 hover:text-rose-600 font-bold text-xl cursor-pointer">✕</button>
+        <button type="button" id="close-checkout-btn" class="text-gray-400 hover:text-rose-600 font-bold text-xl cursor-pointer">✕</button>
       </div>
       <div id="checkout-summary-list" class="space-y-2 max-h-32 overflow-y-auto mb-4 divide-y text-sm"></div>
       <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex justify-between items-center mb-4">
@@ -71,7 +71,7 @@
           <option value="Worker 2">Worker 2</option>
         </select>
       </div>
-      <button type="button" onclick="app.confirmPayment()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-lg cursor-pointer">Place Order Now</button>
+      <button type="button" id="place-order-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-lg cursor-pointer">Place Order Now</button>
     </div>
   </div>
 
@@ -83,7 +83,7 @@
           <h2 class="text-2xl font-bold text-gray-800">Welcome to EDS!</h2>
           <p class="text-xs text-gray-500 mt-1">Log in to your account.</p>
         </div>
-        <form onsubmit="app.login(event)" class="space-y-4">
+        <form id="login-form" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1">Email</label>
             <input type="email" id="login-email" required class="w-full px-4 py-2.5 bg-gray-50 border rounded-xl text-sm outline-none">
@@ -104,7 +104,7 @@
           <h1 class="text-2xl font-black">EDS Store Online 🛒</h1>
           <p class="text-xs text-amber-100 mt-1">Available in Bundle (12pcs) orders only.</p>
         </div>
-        <button type="button" onclick="app.openCartModal()" class="bg-white text-indigo-900 font-black px-4 py-2.5 rounded-2xl shadow cursor-pointer">
+        <button type="button" id="open-cart-btn" class="bg-white text-indigo-900 font-black px-4 py-2.5 rounded-2xl shadow cursor-pointer">
           Cart (<span id="cart-count">0</span>)
         </button>
       </div>
@@ -113,231 +113,239 @@
         <h2 class="text-lg font-bold text-gray-800 mb-4">Available Bundle Products</h2>
         <div id="client-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
       </div>
-
-      <!-- GIDUGANG KINI ARON DILI MAG-ERROR ANG JS -->
-      <div class="bg-white p-6 rounded-3xl border shadow-sm hidden">
-        <div id="client-active-orders"></div>
-        <div id="client-order-history"></div>
-      </div>
     </section>
   </main>
 
   <script>
     const API_URL = 'https://eds-backend-jo6g.onrender.com';
     
-    const app = {
-      currentUser: null,
-      products: [],
-      orders: [],
-      cart: [],
-      activeCheckoutItems: [],
+    let currentUser = null;
+    let products = [];
+    let cart = [];
+    let activeCheckoutItems = [];
 
-      init: async function() {
-        try {
-          const [prodRes, orderRes] = await Promise.all([
-            fetch(`${API_URL}/api/products`),
-            fetch(`${API_URL}/api/orders`)
-          ]);
-          if(prodRes.ok) this.products = await prodRes.json();
-          if(orderRes.ok) this.orders = await orderRes.json();
-        } catch(e) {
-          console.error(e);
-        }
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/products`);
+        if(res.ok) products = await res.json();
+      } catch(e) {
+        console.error(e);
+      }
 
-        const savedUser = localStorage.getItem('currentUser');
-        if(savedUser) {
-          this.currentUser = JSON.parse(savedUser);
-          if(this.currentUser.role === 'Client') {
-            this.showClientPage();
-          }
-        }
-      },
-
-      showToast: function(msg) {
-        const toast = document.getElementById('global-toast');
-        document.getElementById('toast-message').innerText = msg;
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
-      },
-
-      login: async function(e) {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-pass').value;
-
-        try {
-          const res = await fetch(`${API_URL}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.currentUser = data.user;
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
-            this.showToast('Login successful!');
-            if(data.user.role === 'Client') {
-              this.showClientPage();
-            } else {
-              alert('Kini nga account dili Client.');
-            }
-          } else {
-            alert(data.message || 'Login failed');
-          }
-        } catch(err) {
-          alert('Server connection error.');
-        }
-      },
-
-      logout: function() {
-        localStorage.removeItem('currentUser');
-        location.reload();
-      },
-
-      showClientPage: function() {
-        document.getElementById('page-login').classList.add('hidden');
-        document.getElementById('page-login').classList.remove('flex');
-        document.getElementById('page-client').classList.remove('hidden');
-        document.getElementById('page-client').classList.add('flex');
-        document.getElementById('user-session-info').classList.remove('hidden');
-        document.getElementById('user-session-info').classList.add('flex');
-        document.getElementById('nav-user-name').innerText = this.currentUser.full_name;
-        document.getElementById('nav-user-role').innerText = this.currentUser.role;
-        this.renderProducts();
-      },
-
-      renderProducts: function() {
-        const grid = document.getElementById('client-products-grid');
-        if(!grid) return;
-
-        if(this.products.length === 0) {
-          grid.innerHTML = `<p class="text-gray-400 text-xs font-bold col-span-full">Walay produkto sa inventory.</p>`;
-          return;
-        }
-
-        grid.innerHTML = this.products.map(p => {
-          const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
-          return `
-            <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between">
-              <div>
-                <h3 class="font-bold text-gray-800 text-base">${p.name} <span class="text-xs text-gray-500">(Bundle 12pcs)</span></h3>
-                <p class="text-xs font-bold text-gray-500 mt-1">Stock: ${p.stock} units</p>
-                <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice}</p>
-              </div>
-              <div class="grid grid-cols-2 gap-2 mt-4">
-                <button type="button" onclick="app.addToCart(${p.id})" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">Add Bundle</button>
-                <button type="button" onclick="app.buyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">Buy Bundle</button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      },
-
-      addToCart: function(id) {
-        const prod = this.products.find(p => p.id === id);
-        if(!prod) return;
-        const price = parseFloat(prod.bundle_price || prod.price * 10);
-        
-        const existing = this.cart.find(c => c.product_id === id);
-        if(existing) {
-          existing.quantity += 12;
-        } else {
-          this.cart.push({ product_id: id, name: `${prod.name} (Bundle)`, price: price, quantity: 12 });
-        }
-        this.showToast('Gidugang sa cart!');
-        document.getElementById('cart-count').innerText = this.cart.reduce((s, i) => s + (i.quantity / 12), 0);
-      },
-
-      buyNow: function(id) {
-        const prod = this.products.find(p => p.id === id);
-        if(!prod) return;
-        const price = parseFloat(prod.bundle_price || prod.price * 10);
-        this.activeCheckoutItems = [{ product_id: id, name: `${prod.name} (Bundle)`, price: price, quantity: 12 }];
-        this.openCheckout();
-      },
-
-      openCartModal: function() {
-        if(this.cart.length === 0) return this.showToast('Walay sulod ang cart!');
-        const list = document.getElementById('cart-item-list');
-        let total = 0;
-        list.innerHTML = this.cart.map((item, idx) => {
-          const sub = item.price * (item.quantity / 12);
-          total += sub;
-          return `
-            <div class="py-2 flex justify-between items-center text-xs">
-              <span><b>${item.name}</b> (${item.quantity/12} bundle)</span>
-              <span class="font-bold text-indigo-600">₱${sub.toFixed(2)}</span>
-            </div>
-          `;
-        }).join('');
-        document.getElementById('cart-total-price').innerText = `₱ ${total.toFixed(2)}`;
-        document.getElementById('cart-modal').classList.remove('hidden');
-      },
-
-      closeCartModal: function() {
-        document.getElementById('cart-modal').classList.add('hidden');
-      },
-
-      proceedCheckout: function() {
-        if(this.cart.length === 0) return;
-        this.activeCheckoutItems = [...this.cart];
-        this.closeCartModal();
-        this.openCheckout();
-      },
-
-      openCheckout: function() {
-        const summary = document.getElementById('checkout-summary-list');
-        let total = 0;
-        summary.innerHTML = this.activeCheckoutItems.map(i => {
-          const sub = i.price * (i.quantity / 12);
-          total += sub;
-          return `<div class="flex justify-between text-xs py-1"><span>${i.name}</span><b>₱${sub.toFixed(2)}</b></div>`;
-        }).join('');
-        document.getElementById('checkout-total-price').innerText = `₱ ${total.toFixed(2)}`;
-        document.getElementById('checkout-modal').classList.remove('hidden');
-      },
-
-      closeCheckout: function() {
-        document.getElementById('checkout-modal').classList.add('hidden');
-      },
-
-      confirmPayment: async function() {
-        const worker = document.getElementById('select-worker-assign').value;
-        const total = this.activeCheckoutItems.reduce((s, i) => s + (i.price * (i.quantity / 12)), 0);
-        const orderId = 'ORD-' + Date.now().toString().slice(-6);
-
-        try {
-          const res = await fetch(`${API_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: orderId,
-              client_name: this.currentUser.full_name,
-              client_address: this.currentUser.delivery_address || 'N/A',
-              total_amount: total,
-              payment_method: 'COD',
-              assigned_worker: worker,
-              status: 'Pending',
-              items: this.activeCheckoutItems
-            })
-          });
-          const data = await res.json();
-          if(data.success) {
-            this.showToast('Order placed successfully!');
-            this.cart = [];
-            document.getElementById('cart-count').innerText = '0';
-            this.closeCheckout();
-          } else {
-            alert(data.message || 'Error placing order');
-          }
-        } catch(e) {
-          alert('Server error');
+      const savedUser = localStorage.getItem('currentUser');
+      if(savedUser) {
+        currentUser = JSON.parse(savedUser);
+        if(currentUser.role === 'Client') {
+          showClientPage();
         }
       }
-    };
 
-    window.app = app;
-    document.addEventListener('DOMContentLoaded', () => app.init());
+      // Event Listeners
+      document.getElementById('login-form').addEventListener('submit', handleLogin);
+      document.getElementById('logout-btn').addEventListener('click', logout);
+      document.getElementById('open-cart-btn').addEventListener('click', openCartModal);
+      document.getElementById('close-cart-btn').addEventListener('click', closeCartModal);
+      document.getElementById('checkout-btn').addEventListener('click', proceedCheckout);
+      document.getElementById('close-checkout-btn').addEventListener('click', closeCheckout);
+      document.getElementById('place-order-btn').addEventListener('click', confirmPayment);
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('global-toast');
+      document.getElementById('toast-message').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-pass').value;
+
+      try {
+        const res = await fetch(`${API_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if(data.success) {
+          currentUser = data.user;
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
+          showToast('Login successful!');
+          if(data.user.role === 'Client') {
+            showClientPage();
+          } else {
+            alert('Kini nga account dili Client.');
+          }
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      } catch(err) {
+        alert('Server connection error.');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('currentUser');
+      location.reload();
+    }
+
+    function showClientPage() {
+      document.getElementById('page-login').classList.add('hidden');
+      document.getElementById('page-login').classList.remove('flex');
+      document.getElementById('page-client').classList.remove('hidden');
+      document.getElementById('page-client').classList.add('flex');
+      document.getElementById('user-session-info').classList.remove('hidden');
+      document.getElementById('user-session-info').classList.add('flex');
+      document.getElementById('nav-user-name').innerText = currentUser.full_name;
+      document.getElementById('nav-user-role').innerText = currentUser.role;
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('client-products-grid');
+      if(!grid) return;
+
+      if(products.length === 0) {
+        grid.innerHTML = `<p class="text-gray-400 text-xs font-bold col-span-full">Walay produkto sa inventory.</p>`;
+        return;
+      }
+
+      grid.innerHTML = products.map(p => {
+        const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
+        return `
+          <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-gray-800 text-base">${p.name} <span class="text-xs text-gray-500">(Bundle 12pcs)</span></h3>
+              <p class="text-xs font-bold text-gray-500 mt-1">Stock: ${p.stock} units</p>
+              <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-4">
+              <button type="button" data-id="${p.id}" class="add-cart-btn bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">Add Bundle</button>
+              <button type="button" data-id="${p.id}" class="buy-now-btn bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">Buy Bundle</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Dynamic Event Listeners para sa dynamically created buttons
+      document.querySelectorAll('.add-cart-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(e.target.getAttribute('data-id'));
+          addToCart(id);
+        });
+      });
+
+      document.querySelectorAll('.buy-now-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(e.target.getAttribute('data-id'));
+          buyNow(id);
+        });
+      });
+    }
+
+    function addToCart(id) {
+      const prod = products.find(p => p.id === id);
+      if(!prod) return;
+      const price = parseFloat(prod.bundle_price || prod.price * 10);
+      
+      const existing = cart.find(c => c.product_id === id);
+      if(existing) {
+        existing.quantity += 12;
+      } else {
+        cart.push({ product_id: id, name: `${prod.name} (Bundle)`, price: price, quantity: 12 });
+      }
+      showToast('Gidugang sa cart!');
+      document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + (i.quantity / 12), 0);
+    }
+
+    function buyNow(id) {
+      const prod = products.find(p => p.id === id);
+      if(!prod) return;
+      const price = parseFloat(prod.bundle_price || prod.price * 10);
+      activeCheckoutItems = [{ product_id: id, name: `${prod.name} (Bundle)`, price: price, quantity: 12 }];
+      openCheckout();
+    }
+
+    function openCartModal() {
+      if(cart.length === 0) return showToast('Walay sulod ang cart!');
+      const list = document.getElementById('cart-item-list');
+      let total = 0;
+      list.innerHTML = cart.map((item, idx) => {
+        const sub = item.price * (item.quantity / 12);
+        total += sub;
+        return `
+          <div class="py-2 flex justify-between items-center text-xs">
+            <span><b>${item.name}</b> (${item.quantity/12} bundle)</span>
+            <span class="font-bold text-indigo-600">₱${sub.toFixed(2)}</span>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('cart-total-price').innerText = `₱ ${total.toFixed(2)}`;
+      document.getElementById('cart-modal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cart-modal').classList.add('hidden');
+    }
+
+    function proceedCheckout() {
+      if(cart.length === 0) return;
+      activeCheckoutItems = [...cart];
+      closeCartModal();
+      openCheckout();
+    }
+
+    function openCheckout() {
+      const summary = document.getElementById('checkout-summary-list');
+      let total = 0;
+      summary.innerHTML = activeCheckoutItems.map(i => {
+        const sub = i.price * (i.quantity / 12);
+        total += sub;
+        return `<div class="flex justify-between text-xs py-1"><span>${i.name}</span><b>₱${sub.toFixed(2)}</b></div>`;
+      }).join('');
+      document.getElementById('checkout-total-price').innerText = `₱ ${total.toFixed(2)}`;
+      document.getElementById('checkout-modal').classList.remove('hidden');
+    }
+
+    function closeCheckout() {
+      document.getElementById('checkout-modal').classList.add('hidden');
+    }
+
+    async function confirmPayment() {
+      const worker = document.getElementById('select-worker-assign').value;
+      const total = activeCheckoutItems.reduce((s, i) => s + (i.price * (i.quantity / 12)), 0);
+      const orderId = 'ORD-' + Date.now().toString().slice(-6);
+
+      try {
+        const res = await fetch(`${API_URL}/api/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: orderId,
+            client_name: currentUser.full_name,
+            client_address: currentUser.delivery_address || 'N/A',
+            total_amount: total,
+            payment_method: 'COD',
+            assigned_worker: worker,
+            status: 'Pending',
+            items: activeCheckoutItems
+          })
+        });
+        const data = await res.json();
+        if(data.success) {
+          showToast('Order placed successfully!');
+          cart = [];
+          document.getElementById('cart-count').innerText = '0';
+          closeCheckout();
+        } else {
+          alert(data.message || 'Error placing order');
+        }
+      } catch(e) {
+        alert('Server error');
+      }
+    }
   </script>
 </body>
 </html>
