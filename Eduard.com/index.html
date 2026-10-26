@@ -566,6 +566,7 @@
           } else {
             clientGrid.innerHTML = this.products.map(p => {
               const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
+              const pIdStr = String(p.id);
 
               return `
               <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between overflow-hidden">
@@ -580,10 +581,10 @@
                   <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice} <span class="text-xs text-gray-400 font-normal">/ bundle</span></p>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-4">
-                  <button type="button" onclick="window.app.addToCart(${p.id})" ${p.stock < 12 ? 'disabled' : ''} class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 disabled:bg-gray-200 disabled:text-gray-400 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <button type="button" onclick="app.addToCart('${pIdStr}')" ${p.stock < 12 ? 'disabled' : ''} class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 disabled:bg-gray-200 disabled:text-gray-400 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95">
                     <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Add Bundle
                   </button>
-                  <button type="button" onclick="window.app.directBuyNow(${p.id})" ${p.stock < 12 ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <button type="button" onclick="app.directBuyNow('${pIdStr}')" ${p.stock < 12 ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95">
                     <i data-lucide="zap" class="w-3.5 h-3.5"></i> Buy Bundle
                   </button>
                 </div>
@@ -635,8 +636,8 @@
                   <td class="p-3 text-xs">${o.payment_method}</td>
                   <td class="p-3"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${o.status}</span></td>
                   <td class="p-3 text-center space-x-1">
-                    ${o.status === 'Pending' ? `<button onclick="window.app.updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Approve</button>` : ''}
-                    ${o.status === 'Approved' ? `<button onclick="window.app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Deliver</button>` : ''}
+                    ${o.status === 'Pending' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Approve</button>` : ''}
+                    ${o.status === 'Approved' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Deliver</button>` : ''}
                   </td>
                 </tr>
               `).join('');
@@ -656,7 +657,7 @@
               <td class="p-3 text-xs font-bold">Bundle: ₱${p.bundle_price || p.price * 10}</td>
               <td class="p-3 text-xs font-extrabold">${p.stock} units</td>
               <td class="p-3 text-center">
-                <button onclick="window.app.workerWalkInSale(${p.id}, 'bundle')" class="bg-indigo-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Sell Bundle</button>
+                <button onclick="app.workerWalkInSale('${p.id}', 'bundle')" class="bg-indigo-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Sell Bundle</button>
               </td>
             </tr>
           `).join('');
@@ -676,7 +677,7 @@
               <td class="p-3 font-bold text-emerald-700">₱ ${parseFloat(p.bundle_price || p.price * 10).toFixed(2)}</td>
               <td class="p-3 text-xs font-black">${p.stock} units</td>
               <td class="p-3 text-center">
-                <button onclick="window.app.openRestockModal(${p.id}, '${p.name}', ${p.price}, ${p.bundle_price || p.price * 10})" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Restock</button>
+                <button onclick="app.openRestockModal('${p.id}', '${p.name}', ${p.price}, ${p.bundle_price || p.price * 10})" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Restock</button>
               </td>
             </tr>
           `).join('');
@@ -731,9 +732,9 @@
       },
 
       addToCart: function(productId) {
-        const prod = this.products.find(p => p.id === productId);
+        const prod = this.products.find(p => String(p.id) === String(productId));
         if (!prod) return;
-        const existing = this.cart.find(item => item.product_id === productId);
+        const existing = this.cart.find(item => String(item.product_id) === String(productId));
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
         if (existing) {
           existing.qty += 1;
@@ -777,7 +778,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                   <span class="font-extrabold text-indigo-700">₱${itemTotal.toFixed(2)}</span>
-                  <button onclick="window.app.removeFromCart(${idx})" class="text-rose-500 hover:text-rose-700 font-bold"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="app.removeFromCart(${idx})" class="text-rose-500 hover:text-rose-700 font-bold"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
               </div>
             `;
@@ -801,7 +802,7 @@
       },
 
       directBuyNow: function(productId) {
-        const prod = this.products.find(p => p.id === productId);
+        const prod = this.products.find(p => String(p.id) === String(productId));
         if (!prod) return;
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
         this.activeCheckoutItems = [{
@@ -899,7 +900,7 @@
       },
 
       workerWalkInSale: async function(productId, saleType) {
-        const prod = this.products.find(p => p.id === productId);
+        const prod = this.products.find(p => String(p.id) === String(productId));
         if(!prod) return;
         const price = parseFloat(prod.bundle_price || prod.price * 10);
 
@@ -916,21 +917,10 @@
           const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderPayload)
+            body: JSON.stringify({ status: 'Delivered' })
           });
-          const data = await res.json();
-          if(data.success) {
-            // Auto approve and deliver for walk-in counter sale
-            await fetch(`${this.API_BASE_URL}/api/orders/${data.orderId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'Delivered' })
-            });
-            this.showToast('Walk-in sale recorded successfully!');
-            this.fetchServerData();
-          } else {
-            this.showToast(data.message || 'Walk-in sale failed.');
-          }
+          this.showToast('Walk-in sale recorded successfully!');
+          this.fetchServerData();
         } catch(e) {
           this.showToast('Server connection error.');
         }
