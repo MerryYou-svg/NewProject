@@ -82,43 +82,6 @@
     </div>
   </div>
 
-  <!-- RECEIPT MODAL -->
-  <div id="receipt-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h3 class="font-black text-gray-800 text-base flex items-center gap-2">
-          <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Transaction Details
-        </h3>
-        <button type="button" onclick="window.app.closeReceiptModal()" class="text-gray-400 hover:text-rose-600"><i data-lucide="x" class="w-6 h-6"></i></button>
-      </div>
-      
-      <div id="printable-receipt" class="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4 my-2 text-xs flex-grow overflow-y-auto">
-        <div class="text-center border-b pb-3">
-          <h2 class="font-black text-sm text-indigo-950 uppercase">EDS - Eduard Distribution Supplies</h2>
-          <p class="text-[10px] text-gray-500">Official Store Details / Sales Invoice</p>
-        </div>
-        <div class="space-y-1 text-gray-700">
-          <div class="flex justify-between"><span>Transaction ID:</span> <b id="rec-id" class="text-indigo-900"></b></div>
-          <div class="flex justify-between"><span>Customer Name:</span> <b id="rec-client"></b></div>
-          <div class="flex justify-between"><span>Address / Type:</span> <b id="rec-address"></b></div>
-          <div class="flex justify-between"><span>Processed By:</span> <b id="rec-worker"></b></div>
-          <div class="flex justify-between"><span>Date & Time:</span> <b id="rec-date"></b></div>
-        </div>
-        <div class="border-t border-b py-2">
-          <p class="font-bold text-gray-500 mb-2 text-[10px] uppercase">Details of Items Purchased:</p>
-          <div id="rec-items-list" class="space-y-2"></div>
-        </div>
-        <div class="flex justify-between items-center text-sm font-black pt-1 text-indigo-950">
-          <span>Total Amount Paid:</span>
-          <span id="rec-total" class="text-indigo-600 text-base"></span>
-        </div>
-        <div class="text-center pt-3 border-t text-[10px] text-gray-400">
-          <p>Thank you for purchasing with EDS!</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- CART MODAL -->
   <div id="cart-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh]">
@@ -1001,7 +964,11 @@
       }
     };
 
+    // Explicitly set window scope
     window.app = app;
+    window.addToCart = function(id) { window.app.addToCart(id); };
+    window.directBuyNow = function(id) { window.app.directBuyNow(id); };
+
     document.addEventListener('DOMContentLoaded', () => app.init());
   </script>
 </body>
