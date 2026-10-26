@@ -82,43 +82,6 @@
     </div>
   </div>
 
-  <!-- RECEIPT MODAL -->
-  <div id="receipt-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
-      <div class="flex justify-between items-center border-b pb-3 mb-4">
-        <h3 class="font-black text-gray-800 text-base flex items-center gap-2">
-          <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Transaction Details
-        </h3>
-        <button type="button" onclick="window.app.closeReceiptModal()" class="text-gray-400 hover:text-rose-600"><i data-lucide="x" class="w-6 h-6"></i></button>
-      </div>
-      
-      <div id="printable-receipt" class="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4 my-2 text-xs flex-grow overflow-y-auto">
-        <div class="text-center border-b pb-3">
-          <h2 class="font-black text-sm text-indigo-950 uppercase">EDS - Eduard Distribution Supplies</h2>
-          <p class="text-[10px] text-gray-500">Official Store Details / Sales Invoice</p>
-        </div>
-        <div class="space-y-1 text-gray-700">
-          <div class="flex justify-between"><span>Transaction ID:</span> <b id="rec-id" class="text-indigo-900"></b></div>
-          <div class="flex justify-between"><span>Customer Name:</span> <b id="rec-client"></b></div>
-          <div class="flex justify-between"><span>Address / Type:</span> <b id="rec-address"></b></div>
-          <div class="flex justify-between"><span>Processed By:</span> <b id="rec-worker"></b></div>
-          <div class="flex justify-between"><span>Date & Time:</span> <b id="rec-date"></b></div>
-        </div>
-        <div class="border-t border-b py-2">
-          <p class="font-bold text-gray-500 mb-2 text-[10px] uppercase">Details of Items Purchased:</p>
-          <div id="rec-items-list" class="space-y-2"></div>
-        </div>
-        <div class="flex justify-between items-center text-sm font-black pt-1 text-indigo-950">
-          <span>Total Amount Paid:</span>
-          <span id="rec-total" class="text-indigo-600 text-base"></span>
-        </div>
-        <div class="text-center pt-3 border-t text-[10px] text-gray-400">
-          <p>Thank you for purchasing with EDS!</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- CART MODAL -->
   <div id="cart-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh]">
@@ -294,15 +257,8 @@
         </div>
         <div class="bg-emerald-800 px-4 py-2.5 rounded-2xl border border-emerald-600 flex items-center gap-3">
           <div>
-            <p class="text-[10px] text-emerald-200 uppercase font-extrabold">Personal Worker Sales (Separate):</p>
+            <p class="text-[10px] text-emerald-200 uppercase font-extrabold">Personal Worker Sales:</p>
             <p id="worker-total-sales" class="text-base font-black text-amber-300">₱ 0.00</p>
-          </div>
-          <div class="border-l border-emerald-600 pl-3">
-            <label class="text-[10px] font-extrabold text-emerald-200 block">Profile:</label>
-            <select id="worker-filter-select" disabled class="bg-emerald-950 text-amber-300 border border-emerald-500 text-xs px-2 py-1 rounded-xl font-black outline-none">
-              <option value="Worker 1">Worker 1</option>
-              <option value="Worker 2">Worker 2</option>
-            </select>
           </div>
         </div>
       </div>
@@ -312,10 +268,6 @@
           <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
             <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i> Assigned Client Orders
           </h2>
-          <div class="relative w-full sm:w-64">
-            <input type="text" id="worker-order-search" oninput="window.app.renderViews()" placeholder="Search Order ID or Client..." class="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs outline-none">
-            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-2.5 top-2"></i>
-          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
@@ -336,16 +288,16 @@
 
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Walk-in Counter Sale (Choose 1pcs or Bundle (12pcs))
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Walk-in Counter Sale (Sell Bundle)
         </h2>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
               <tr>
                 <th class="p-3">Product Name</th>
-                <th class="p-3">Prices (1pcs / Bundle (12pcs))</th>
+                <th class="p-3">Bundle Price</th>
                 <th class="p-3">Stock Left</th>
-                <th class="p-3 text-center">Walk-in Action</th>
+                <th class="p-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="worker-inventory-table" class="divide-y"></tbody>
@@ -359,73 +311,24 @@
       <div class="bg-indigo-950 text-white p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 class="text-2xl font-black">Owner Master Dashboard 👑</h1>
-          <p class="text-xs text-indigo-300 mt-1">Monitor Worker 1 & Worker 2 operations and overall inventory.</p>
+          <p class="text-xs text-indigo-300 mt-1">Monitor Worker operations and overall inventory management.</p>
         </div>
         <div class="bg-indigo-900 px-5 py-3 rounded-2xl border border-indigo-700 flex items-center gap-4 shadow-inner">
           <div>
-            <p class="text-[11px] text-amber-300 uppercase font-black tracking-wider">Grand Total Revenue (Combined):</p>
+            <p class="text-[11px] text-amber-300 uppercase font-black tracking-wider">Grand Total Revenue:</p>
             <p id="owner-total-sales" class="text-xl font-black text-amber-400">₱ 0.00</p>
           </div>
           <span class="bg-amber-400 text-indigo-950 text-xs font-black px-3 py-1.5 rounded-xl">Admin Access</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-3xl border-2 shadow-sm border-blue-200">
-          <div class="flex justify-between items-center border-b pb-3 mb-3">
-            <div>
-              <h3 class="font-black text-blue-950 text-base flex items-center gap-2">
-                <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> Worker 1 Orders
-              </h3>
-              <p class="text-[11px] font-bold text-gray-500">Separate Sales: <span id="owner-w1-total" class="text-blue-700 font-black">₱ 0.00</span></p>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-blue-50 text-blue-900 uppercase font-black">
-                <tr>
-                  <th class="p-2">Order ID</th>
-                  <th class="p-2">Client</th>
-                  <th class="p-2">Amount</th>
-                  <th class="p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody id="owner-worker1-table" class="divide-y font-semibold"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-3xl border-2 shadow-sm border-purple-200">
-          <div class="flex justify-between items-center border-b pb-3 mb-3">
-            <div>
-              <h3 class="font-black text-purple-950 text-base flex items-center gap-2">
-                <i data-lucide="user-check" class="w-5 h-5 text-purple-600"></i> Worker 2 Orders
-              </h3>
-              <p class="text-[11px] font-bold text-gray-500">Separate Sales: <span id="owner-w2-total" class="text-purple-700 font-black">₱ 0.00</span></p>
-            </div>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-purple-50 text-purple-900 uppercase font-black">
-                <tr>
-                  <th class="p-2">Order ID</th>
-                  <th class="p-2">Client</th>
-                  <th class="p-2">Amount</th>
-                  <th class="p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody id="owner-worker2-table" class="divide-y font-semibold"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
+      <!-- ADD PRODUCT FORM (OWNER ONLY) -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add Product
+          <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add New Product (Owner Control Only)
         </h2>
         <form onsubmit="window.app.addProduct(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-          <input type="text" id="prod-name" placeholder="Product Name (e.g. Ballpen, Ruler)" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
+          <input type="text" id="prod-name" placeholder="Product Name" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-price" min="1" step="0.01" placeholder="1 pcs price" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-bundle-price" min="1" step="0.01" placeholder="1 bundle price" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
           <input type="number" id="prod-stock" min="1" placeholder="Stock" required class="px-3 py-2 bg-gray-50 border rounded-xl text-xs outline-none">
@@ -750,7 +653,7 @@
                 </div>
                 <span>${p.name}</span>
               </td>
-              <td class="p-3 text-xs font-bold">1pcs: ₱${p.price} | Bundle: ₱${p.bundle_price || p.price * 10}</td>
+              <td class="p-3 text-xs font-bold">Bundle: ₱${p.bundle_price || p.price * 10}</td>
               <td class="p-3 text-xs font-extrabold">${p.stock} units</td>
               <td class="p-3 text-center">
                 <button onclick="window.app.workerWalkInSale(${p.id}, 'bundle')" class="bg-indigo-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Sell Bundle</button>
@@ -827,10 +730,210 @@
         this.fetchServerData();
       },
 
-      logout: function() {
-        localStorage.removeItem('currentUser');
-        this.currentUser = null;
-        this.navigateTo('login');
+      addToCart: function(productId) {
+        const prod = this.products.find(p => p.id === productId);
+        if (!prod) return;
+        const existing = this.cart.find(item => item.product_id === productId);
+        const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          this.cart.push({
+            product_id: prod.id,
+            name: prod.name,
+            price: bndlPrice,
+            qty: 1,
+            type: 'Bundle (12pcs)'
+          });
+        }
+        this.updateCartUI();
+        this.showToast(`Added ${prod.name} bundle to cart!`);
+      },
+
+      updateCartUI: function() {
+        const cartCount = document.getElementById('cart-count');
+        const cartList = document.getElementById('cart-item-list');
+        const cartTotal = document.getElementById('cart-total-price');
+        
+        const totalItems = this.cart.reduce((sum, i) => sum + i.qty, 0);
+        if(cartCount) cartCount.innerText = totalItems;
+
+        if(cartList && cartTotal) {
+          if(this.cart.length === 0) {
+            cartList.innerHTML = `<p class="text-gray-400 text-xs text-center py-4 font-bold">Your cart is empty.</p>`;
+            cartTotal.innerText = '₱ 0.00';
+            return;
+          }
+
+          let sumTotal = 0;
+          cartList.innerHTML = this.cart.map((item, idx) => {
+            const itemTotal = item.price * item.qty;
+            sumTotal += itemTotal;
+            return `
+              <div class="flex justify-between items-center py-2 text-xs">
+                <div>
+                  <p class="font-black text-gray-800">${item.name} (${item.type})</p>
+                  <p class="text-gray-500">₱${item.price.toFixed(2)} x ${item.qty}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="font-extrabold text-indigo-700">₱${itemTotal.toFixed(2)}</span>
+                  <button onclick="window.app.removeFromCart(${idx})" class="text-rose-500 hover:text-rose-700 font-bold"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+            `;
+          }).join('');
+          cartTotal.innerText = `₱ ${sumTotal.toFixed(2)}`;
+        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      },
+
+      removeFromCart: function(idx) {
+        this.cart.splice(idx, 1);
+        this.updateCartUI();
+      },
+
+      openCartModal: function() {
+        document.getElementById('cart-modal').classList.remove('hidden');
+      },
+
+      closeCartModal: function() {
+        document.getElementById('cart-modal').classList.add('hidden');
+      },
+
+      directBuyNow: function(productId) {
+        const prod = this.products.find(p => p.id === productId);
+        if (!prod) return;
+        const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
+        this.activeCheckoutItems = [{
+          product_id: prod.id,
+          name: prod.name,
+          price: bndlPrice,
+          qty: 1,
+          type: 'Bundle (12pcs)'
+        }];
+        this.openCheckoutModal(bndlPrice);
+      },
+
+      proceedToCheckoutFromCart: function() {
+        if (this.cart.length === 0) return this.showToast('Your cart is empty!');
+        this.activeCheckoutItems = [...this.cart];
+        const total = this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+        this.closeCartModal();
+        this.openCheckoutModal(total);
+      },
+
+      openCheckoutModal: function(totalAmount) {
+        const addrContainer = document.getElementById('modal-delivery-address');
+        const addrText = document.getElementById('client-address-text');
+        const summaryList = document.getElementById('checkout-summary-list');
+        const totalPriceEl = document.getElementById('checkout-total-price');
+
+        if(this.currentUser && this.currentUser.delivery_address) {
+          addrContainer.classList.remove('hidden');
+          addrText.innerText = this.currentUser.delivery_address;
+        } else {
+          addrContainer.classList.add('hidden');
+        }
+
+        summaryList.innerHTML = this.activeCheckoutItems.map(i => `
+          <div class="flex justify-between text-xs py-1">
+            <span>${i.name} (${i.qty}x Bundle)</span>
+            <span class="font-bold">₱${(i.price * i.qty).toFixed(2)}</span>
+          </div>
+        `).join('');
+
+        totalPriceEl.innerText = `₱ ${totalAmount.toFixed(2)}`;
+        document.getElementById('checkout-modal').classList.remove('hidden');
+      },
+
+      closeCheckoutModal: function() {
+        document.getElementById('checkout-modal').classList.add('hidden');
+      },
+
+      confirmPayment: async function() {
+        const assignedWorker = document.getElementById('select-worker-assign').value;
+        const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+        const totalAmount = this.activeCheckoutItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+        const orderPayload = {
+          client_name: this.currentUser.full_name,
+          items: this.activeCheckoutItems,
+          total_amount: totalAmount,
+          assigned_worker: assignedWorker,
+          payment_method: paymentMethod,
+          delivery_address: this.currentUser.delivery_address || 'Store Walk-in'
+        };
+
+        try {
+          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderPayload)
+          });
+          const data = await res.json();
+          if(data.success) {
+            this.showToast('Order placed successfully!');
+            this.cart = [];
+            this.closeCheckoutModal();
+            this.fetchServerData();
+          } else {
+            this.showToast(data.message || 'Failed to place order.');
+          }
+        } catch (e) {
+          this.showToast('Server error during checkout.');
+        }
+      },
+
+      updateOrderStatus: async function(orderId, newStatus) {
+        try {
+          await fetch(`${this.API_BASE_URL}/api/orders/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+          });
+          this.fetchServerData();
+          this.showToast(`Order status updated to ${newStatus}`);
+        } catch(e) {
+          this.showToast('Failed to update status.');
+        }
+      },
+
+      workerWalkInSale: async function(productId, saleType) {
+        const prod = this.products.find(p => p.id === productId);
+        if(!prod) return;
+        const price = parseFloat(prod.bundle_price || prod.price * 10);
+
+        const orderPayload = {
+          client_name: 'Walk-in Customer',
+          items: [{ product_id: prod.id, name: prod.name, price: price, qty: 1, type: 'Bundle (12pcs)' }],
+          total_amount: price,
+          assigned_worker: this.currentUser.role,
+          payment_method: 'Cash',
+          delivery_address: 'Walk-in Counter'
+        };
+
+        try {
+          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderPayload)
+          });
+          const data = await res.json();
+          if(data.success) {
+            // Auto approve and deliver for walk-in counter sale
+            await fetch(`${this.API_BASE_URL}/api/orders/${data.orderId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'Delivered' })
+            });
+            this.showToast('Walk-in sale recorded successfully!');
+            this.fetchServerData();
+          } else {
+            this.showToast(data.message || 'Walk-in sale failed.');
+          }
+        } catch(e) {
+          this.showToast('Server connection error.');
+        }
       }
     };
 
