@@ -1024,13 +1024,29 @@
       },
 
       addToCart: function(prodId) {
-        const prod = this.products.find(p => p.id === prodId);
-        if(!prod) return;
+        if (!this.products || this.products.length === 0) {
+          this.showToast('Gihulat pa ang data sa server. Palihug i-refresh kadiyot.');
+          this.fetchServerData();
+          return;
+        }
+
+        const prod = this.products.find(p => p.id === Number(prodId) || p.id === prodId);
+        if(!prod) {
+          this.showToast('Wala makit-an ang produkto!');
+          return;
+        }
+
+        if (prod.stock < 12) {
+          return this.showToast('Kulang na ang stock para sa 1 ka bundle (12pcs)!');
+        }
 
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
-        const cartItem = this.cart.find(c => c.product_id === prodId);
+        const cartItem = this.cart.find(c => c.product_id === prod.id);
+        
         if(cartItem) {
-          if(cartItem.quantity + 12 > prod.stock) return this.showToast('Cannot exceed available product stock!');
+          if(cartItem.quantity + 12 > prod.stock) {
+            return this.showToast('Dili pwede molapas sa available stock!');
+          }
           cartItem.quantity += 12;
         } else {
           this.cart.push({ 
@@ -1041,7 +1057,8 @@
             maxStock: prod.stock 
           });
         }
-        this.showToast(`${prod.name} (Bundle) added to cart!`);
+        
+        this.showToast(`${prod.name} (Bundle) naapil na sa cart!`);
         this.renderViews();
       },
 
@@ -1062,8 +1079,17 @@
       },
 
       directBuyNow: function(prodId) {
-        const prod = this.products.find(p => p.id === prodId);
-        if(!prod || prod.stock < 12) return this.showToast('Product bundle is out of stock!');
+        if (!this.products || this.products.length === 0) {
+          this.showToast('Gihulat pa ang data sa server. Palihug i-refresh kadiyot.');
+          this.fetchServerData();
+          return;
+        }
+
+        const prod = this.products.find(p => p.id === Number(prodId) || p.id === prodId);
+        if(!prod || prod.stock < 12) {
+          return this.showToast('Out of stock na o kulang ang stock sa bundle!');
+        }
+
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
         this.activeCheckoutItems = [{ 
           product_id: prod.id, 
@@ -1072,6 +1098,7 @@
           quantity: 12,
           maxStock: prod.stock
         }];
+        
         this.showCheckoutModal();
       },
 
