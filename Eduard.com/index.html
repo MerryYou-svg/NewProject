@@ -989,7 +989,7 @@
         const salePrice = type === 'bundle' ? (prod.bundle_price || prod.price * 10) : prod.price;
 
         if(!prod || prod.stock < qtyToDeduct) {
-          return this.showToast(`Kuwang ang stock! (${prod.stock} units na lang ang nabilin)`);
+          return this.showToast(`Kuwang ang stock! (${prod ? prod.stock : 0} units na lang ang nabilin)`);
         }
 
         const walkInId = 'WALK-' + Date.now().toString().slice(-6);
@@ -1012,12 +1012,6 @@
           });
           const data = await res.json();
           if(data.success) {
-            await fetch(`${this.API_BASE_URL}/api/orders/${walkInId}/status`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'Delivered' })
-            });
-
             this.showToast(`Walk-in sale narekord! Nabawasan ang stock og ${qtyToDeduct}.`);
             await this.fetchServerData();
             this.openReceiptModal(walkInId);
@@ -1075,7 +1069,8 @@
           product_id: prod.id, 
           name: `${prod.name} (Bundle (12pcs))`, 
           price: bndlPrice, 
-          quantity: 12 
+          quantity: 12,
+          maxStock: prod.stock
         }];
         this.showCheckoutModal();
       },
@@ -1157,8 +1152,11 @@
       },
 
       confirmPayment: async function() {
+        if (!this.currentUser) return this.showToast('Please log in first!');
+        
         const assigned_worker = document.getElementById('select-worker-assign').value;
-        const payment_method = document.querySelector('input[name="payment-method"]:checked').value;
+        const payment_method_el = document.querySelector('input[name="payment-method"]:checked');
+        const payment_method = payment_method_el ? payment_method_el.value : 'COD';
         const client_address = this.currentUser.delivery_address || 'N/A';
 
         const total_amount = this.activeCheckoutItems.reduce((sum, item) => sum + (item.price * (item.quantity / 12)), 0);
@@ -1207,6 +1205,8 @@
           if(data.success) {
             this.showToast(`Order ${orderId} updated to ${status}!`);
             this.fetchServerData();
+          } else {
+            this.showToast(data.message || 'Failed to update status.');
           }
         } catch(e) {
           this.showToast('Failed to update order status.');
