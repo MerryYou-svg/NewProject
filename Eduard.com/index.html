@@ -420,7 +420,7 @@
         </div>
       </div>
 
-      <!-- OWNER ADD PRODUCT FORM -->
+      <!-- OWNER ADD PRODUCT FORM WITH EXACT PLACEHOLDERS -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
           <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add Product
@@ -714,56 +714,26 @@
             activeContainer.innerHTML = activeOrders.length === 0 ? `<p class="text-gray-400 text-xs font-bold">No active pending orders.</p>` :
               activeOrders.map(o => {
                 const isApproved = o.status === 'Approved';
-                let parsedItems = o.items;
-                if(typeof parsedItems === 'string') {
-                  try { parsedItems = JSON.parse(parsedItems); } catch(e){}
-                }
-                const formattedDate = new Date(o.created_at || Date.now()).toLocaleString();
-
                 return `
                 <div class="border rounded-2xl p-4 bg-indigo-50/50 space-y-3">
                   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
                     <div>
                       <span class="font-black text-xs text-indigo-950">${o.id}</span>
                       <span class="text-[11px] text-gray-500 block">Assigned Worker: <b class="text-indigo-700">${o.assigned_worker}</b></span>
-                      <span class="text-[10px] text-gray-500 block">Date: <b>${formattedDate}</b></span>
-                      <span class="text-[10px] text-gray-500 block">Delivery Address: <b class="text-gray-700">${o.client_address || 'N/A'}</b></span>
                     </div>
-                    <div class="text-right">
-                      <div class="font-black text-indigo-600 text-sm">₱${parseFloat(o.total_amount).toFixed(2)}</div>
-                      <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span>
-                    </div>
+                    <div class="font-black text-indigo-600 text-sm">₱${parseFloat(o.total_amount).toFixed(2)}</div>
                   </div>
-
-                  <!-- Items Summary -->
-                  <div class="bg-white p-2.5 rounded-xl border border-indigo-100 space-y-1">
-                    <p class="text-[10px] font-extrabold text-gray-400 uppercase">Items Ordered:</p>
-                    ${Array.isArray(parsedItems) ? parsedItems.map(i => `
-                      <div class="flex justify-between text-xs">
-                        <span class="font-semibold text-gray-700">${i.name || 'Product'} (${i.quantity || i.qty || 1} units)</span>
-                        <span class="font-bold text-indigo-900">₱${parseFloat(i.price * ((i.quantity || i.qty || 1)/12)).toFixed(2)}</span>
-                      </div>
-                    `).join('') : '<span class="text-xs text-gray-500">Direct order items</span>'}
-                  </div>
-
-                  <div class="pt-2 border-t border-indigo-100 flex justify-between items-center">
-                    <div class="flex-grow pr-4">
-                      <div class="flex items-center justify-between text-[10px] font-extrabold mb-1">
-                        <span class="text-indigo-800">1. Order Placed</span>
-                        <span class="${isApproved ? 'text-emerald-700' : 'text-gray-400'}">2. Approved</span>
-                        <span class="text-gray-400">3. Delivered</span>
-                      </div>
-                      <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden flex">
-                        <div class="bg-indigo-600 h-full w-1/3"></div>
-                        <div class="${isApproved ? 'bg-emerald-500' : 'bg-transparent'} h-full w-1/3 transition-all duration-500"></div>
-                        <div class="bg-transparent h-full w-1/3"></div>
-                      </div>
+                  <div class="pt-2 border-t border-indigo-100">
+                    <div class="flex items-center justify-between text-[10px] font-extrabold mb-1">
+                      <span class="text-indigo-800">1. Order Placed</span>
+                      <span class="${isApproved ? 'text-emerald-700' : 'text-gray-400'}">2. Approved</span>
+                      <span class="text-gray-400">3. Delivered</span>
                     </div>
-                    ${o.status === 'Pending' ? `
-                      <button onclick="window.app.updateOrderStatus('${o.id}', 'Cancelled')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-xl transition shrink-0">
-                        Cancel Order
-                      </button>
-                    ` : ''}
+                    <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden flex">
+                      <div class="bg-indigo-600 h-full w-1/3"></div>
+                      <div class="${isApproved ? 'bg-emerald-500' : 'bg-transparent'} h-full w-1/3 transition-all duration-500"></div>
+                      <div class="bg-transparent h-full w-1/3"></div>
+                    </div>
                   </div>
                 </div>
               `}).join('');
@@ -989,7 +959,7 @@
         const salePrice = type === 'bundle' ? (prod.bundle_price || prod.price * 10) : prod.price;
 
         if(!prod || prod.stock < qtyToDeduct) {
-          return this.showToast(`Kuwang ang stock! (${prod.stock} units na lang ang nabilin)`);
+          return this.showToast(`Stock insufficient! (${prod.stock} units left)`);
         }
 
         const walkInId = 'WALK-' + Date.now().toString().slice(-6);
@@ -1018,11 +988,11 @@
               body: JSON.stringify({ status: 'Delivered' })
             });
 
-            this.showToast(`Walk-in sale narekord! Nabawasan ang stock og ${qtyToDeduct}.`);
+            this.showToast(`Walk-in sale recorded! Stock deducted by ${qtyToDeduct}.`);
             await this.fetchServerData();
             this.openReceiptModal(walkInId);
           } else {
-            this.showToast(data.message || 'Napakyas sa pagrekord sa walk-in sale.');
+            this.showToast('Failed to record walk-in sale.');
           }
         } catch(e) {
           this.showToast('Server connection error.');
@@ -1096,7 +1066,7 @@
               <div class="flex items-center gap-1.5 shrink-0">
                 <button onclick="window.app.changeCartQty(${index}, -1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg flex items-center justify-center text-xs text-gray-700">-</button>
                 <span class="w-6 text-center text-xs font-black">${item.quantity / 12}</span>
-                <button onclick="window.app.changeCartQty(${index}, 1)" class="w-7 h-7 bg-indigo-100 hover:bg-indigo-200 font-bold rounded-lg flex items-center justify-center text-xs text-indigo-700">+</button>
+.                <button onclick="window.app.changeCartQty(${index}, 1)" class="w-7 h-7 bg-indigo-100 hover:bg-indigo-200 font-bold rounded-lg flex items-center justify-center text-xs text-indigo-700">+</button>
                 <button onclick="window.app.removeFromCart(${index})" class="text-rose-500 hover:text-rose-700 p-1 ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
@@ -1205,7 +1175,7 @@
           });
           const data = await res.json();
           if(data.success) {
-            this.showToast(`Order ${orderId} updated to ${status}!`);
+            this.showToast(`Order ${orderId} updated to ${status}! Stock deducted.`);
             this.fetchServerData();
           }
         } catch(e) {
@@ -1241,32 +1211,22 @@
         const bundle_price = parseFloat(document.getElementById('prod-bundle-price').value);
         const stock = parseInt(document.getElementById('prod-stock').value);
 
-        if(!name || isNaN(price) || isNaN(bundle_price) || isNaN(stock)) {
-          return this.showToast('Palihug i-fill up ang tanang husto nga detalye sa produkto!');
-        }
+        if(!name || isNaN(price) || isNaN(stock)) return this.showToast('Please complete all product details!');
 
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/products`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              name: name, 
-              price: price, 
-              bundle_price: bundle_price, 
-              bundle_qty: 12, 
-              stock: stock 
-            })
+            body: JSON.stringify({ name, price, bundle_price, bundle_qty: 12, stock })
           });
           const data = await res.json();
           if(data.success) {
-            this.showToast('Bag-ong produkto napuno na sa imbentaryo!');
+            this.showToast('New product added successfully!');
             e.target.reset();
             this.fetchServerData();
-          } else {
-            this.showToast(data.message || 'Napakyas sa pagdugang sa produkto.');
           }
-        } catch(err) {
-          this.showToast('Connection error sa server.');
+        } catch(e) {
+          this.showToast('Error adding product.');
         }
       }
     };
