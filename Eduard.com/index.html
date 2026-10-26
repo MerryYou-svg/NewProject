@@ -15,7 +15,6 @@
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
-
   <!-- TOP NAVIGATION BAR -->
   <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -133,7 +132,7 @@
         <label class="block text-xs font-bold text-gray-700 mb-2">Payment Method:</label>
         <div class="border rounded-2xl p-3 flex items-center gap-2 bg-indigo-50/50 border-indigo-200">
           <input type="radio" name="payment-method" value="COD" checked class="accent-indigo-600">
-          <span class="text-xs font-bold text-indigo-900">💵 Cash on Delivery (COD)</span>
+          <span class="text-xs font-bold text-indigo-900">₱ Cash on Delivery (COD)</span>
         </div>
       </div>
       <button type="button" onclick="window.app.confirmPayment()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
@@ -175,17 +174,14 @@
               <option value="Owner" id="opt-owner">Owner (1 Account Max)</option>
             </select>
           </div>
-
           <div id="worker-choice-container" class="hidden transition-all duration-300">
             <label class="block text-xs font-semibold text-indigo-900 mb-1">Select Worker Slot <span class="text-rose-500">*</span></label>
             <select id="reg-worker-choice" class="w-full px-4 py-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-sm font-bold text-indigo-950 outline-none"></select>
           </div>
-
           <div id="location-field-container" class="hidden transition-all duration-300">
             <label class="block text-xs font-semibold text-gray-700 mb-1">Delivery Location / Complete Address</label>
             <input type="text" id="reg-location" placeholder="Street, Barangay, City/Province" class="w-full px-4 py-2.5 bg-amber-50/50 border border-amber-200 rounded-xl text-sm outline-none">
           </div>
-
           <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Create Account
           </button>
@@ -252,7 +248,7 @@
     <section id="page-worker" class="hidden flex-col w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
       <div class="bg-emerald-700 text-white p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 class="text-2xl font-black">Worker Dashboard & Orders 📦</h1>
+          <h1 class="text-2xl font-black" id="worker-title-heading">Worker Dashboard 🧑‍💼</h1>
           <p class="text-xs text-emerald-200 mt-1">Manage assigned client orders and walk-in counter sales.</p>
         </div>
         <div class="bg-emerald-800 px-4 py-2.5 rounded-2xl border border-emerald-600 flex items-center gap-3">
@@ -264,9 +260,9 @@
       </div>
 
       <div class="bg-white p-6 rounded-3xl border shadow-sm border-indigo-100">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div class="flex justify-between items-center mb-4">
           <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-            <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i> Assigned Client Orders
+            <i data-lucide="truck" class="w-5 h-5 text-indigo-600"></i> Assigned Client Orders (Approve to Deduct Stock)
           </h2>
         </div>
         <div class="overflow-x-auto">
@@ -288,15 +284,16 @@
 
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Walk-in Counter Sale (Sell Bundle)
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-600"></i> Walk-in Counter Sale (Pcs & Bundles with + / -)
         </h2>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
               <tr>
-                <th class="p-3">Product Name</th>
-                <th class="p-3">Bundle Price</th>
+                <th class="p-3">Product Item</th>
+                <th class="p-3">Prices</th>
                 <th class="p-3">Stock Left</th>
+                <th class="p-3">Quantity (+/-)</th>
                 <th class="p-3 text-center">Action</th>
               </tr>
             </thead>
@@ -322,7 +319,47 @@
         </div>
       </div>
 
-      <!-- ADD PRODUCT FORM (OWNER ONLY) -->
+      <!-- WORKER 1 ORDERS MONITOR -->
+      <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Worker 1 Orders Monitor
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase border-b font-extrabold">
+              <tr>
+                <th class="p-3">Order ID</th>
+                <th class="p-3">Client</th>
+                <th class="p-3">Amount</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="owner-w1-orders-table" class="divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- WORKER 2 ORDERS MONITOR -->
+      <div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+          <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Worker 2 Orders Monitor
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase border-b font-extrabold">
+              <tr>
+                <th class="p-3">Order ID</th>
+                <th class="p-3">Client</th>
+                <th class="p-3">Amount</th>
+                <th class="p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="owner-w2-orders-table" class="divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADD PRODUCT FORM -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
           <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Add New Product (Owner Control Only)
@@ -339,15 +376,15 @@
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
         <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center justify-between">
           <span>Inventory Products & Price List</span>
-          <span class="text-xs text-rose-600 font-bold bg-rose-50 px-3 py-1 rounded-full border border-rose-200">⚠️ Red Alert: Stock <= 50</span>
+          <span class="text-xs text-rose-600 font-bold bg-rose-50 px-3 py-1 rounded-full border border-rose-200">⚠️ Red Alert: Stock <= 50 or Out of Stock</span>
         </h2>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
               <tr>
                 <th class="p-3">Product Item</th>
-                <th class="p-3">1pcs Price</th>
-                <th class="p-3">Bundle (12pcs) Price</th>
+                <th class="p-3">1PCS Price</th>
+                <th class="p-3">Bundle Price</th>
                 <th class="p-3">Stock Left</th>
                 <th class="p-3 text-center">Action</th>
               </tr>
@@ -367,11 +404,11 @@
       orders: [],
       cart: [],
       activeCheckoutItems: [],
+      walkInQtys: {},
 
       init: async function() {
         if (typeof lucide !== 'undefined') lucide.createIcons();
         await this.fetchServerData();
-        
         const activeUser = JSON.parse(localStorage.getItem('currentUser'));
         if (activeUser) {
           this.currentUser = activeUser;
@@ -411,11 +448,9 @@
         const workerChoiceBox = document.getElementById('worker-choice-container');
         const workerSelect = document.getElementById('reg-worker-choice');
         const ownerOpt = document.getElementById('opt-owner');
-
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/role-status`);
           const status = await res.json();
-
           if (status.ownerTaken) {
             ownerOpt.disabled = true;
             ownerOpt.innerText = "Owner (Taken / Closed)";
@@ -423,7 +458,6 @@
             ownerOpt.disabled = false;
             ownerOpt.innerText = "Owner (1 Account Max)";
           }
-
           if (role === 'Worker') {
             workerChoiceBox.classList.remove('hidden');
             workerSelect.innerHTML = '';
@@ -434,9 +468,7 @@
           } else {
             workerChoiceBox.classList.add('hidden');
           }
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) { console.error(e); }
 
         if (role === 'Client') {
           locContainer.classList.remove('hidden');
@@ -456,11 +488,9 @@
         const role = document.getElementById('reg-role').value;
         const worker_choice = document.getElementById('reg-worker-choice').value;
         const delivery_address = document.getElementById('reg-location').value.trim();
-
         if (role === 'Client' && !delivery_address) {
           return this.showToast('Delivery address is required for Client registration!');
         }
-
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/register`, {
             method: 'POST',
@@ -477,16 +507,13 @@
           } else {
             this.showToast(data.message || 'Registration failed.');
           }
-        } catch (err) {
-          this.showToast('Server connection error.');
-        }
+        } catch (err) { this.showToast('Server connection error.'); }
       },
 
       login: async function(e) {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-pass').value;
-
         try {
           const res = await fetch(`${this.API_BASE_URL}/api/login`, {
             method: 'POST',
@@ -503,9 +530,7 @@
           } else {
             this.showToast(data.message || 'Invalid credentials.');
           }
-        } catch (err) {
-          this.showToast('Server connection error.');
-        }
+        } catch (err) { this.showToast('Server connection error.'); }
       },
 
       logout: function() {
@@ -524,7 +549,6 @@
             el.classList.remove('flex');
           }
         });
-
         const navInfo = document.getElementById('user-session-info');
         if (rolePage !== 'login' && this.currentUser) {
           navInfo.classList.remove('hidden');
@@ -535,7 +559,6 @@
           navInfo.classList.add('hidden');
           navInfo.classList.remove('flex');
         }
-
         const targetPage = document.getElementById(`page-${rolePage}`);
         if (targetPage) {
           targetPage.classList.remove('hidden');
@@ -553,9 +576,7 @@
           if(prodRes.ok) this.products = await prodRes.json();
           if(orderRes.ok) this.orders = await orderRes.json();
           this.renderViews();
-        } catch(e) {
-          console.error(e);
-        }
+        } catch(e) { console.error(e); }
       },
 
       renderViews: function() {
@@ -567,24 +588,24 @@
             clientGrid.innerHTML = this.products.map(p => {
               const bndlPrice = parseFloat(p.bundle_price || p.price * 10).toFixed(2);
               const pIdStr = String(p.id);
-
+              const isOut = p.stock < 12;
               return `
               <div class="bg-white p-5 rounded-3xl border shadow-sm flex flex-col justify-between overflow-hidden">
                 <div>
                   <div class="w-full h-24 bg-indigo-50 rounded-2xl mb-3 flex items-center justify-center text-indigo-600 shadow-inner">
                     <i data-lucide="package" class="w-10 h-10"></i>
                   </div>
-                  <h3 class="font-bold text-gray-800 text-base">${p.name} <span class="text-xs font-semibold text-gray-500">(Bundle (12pcs))</span></h3>
-                  <p class="text-xs mt-0.5 font-bold ${p.stock <= 50 ? 'text-rose-600' : 'text-gray-500'}">
-                    Stock Left: <span>${p.stock} units ${p.stock <= 50 ? '⚠️' : ''}</span>
+                  <h3 class="font-bold text-gray-800 text-base">${p.name} <span class="text-xs font-semibold text-gray-500">(Bundle 12pcs)</span></h3>
+                  <p class="text-xs mt-0.5 font-bold ${isOut ? 'text-rose-600 font-extrabold' : (p.stock <= 50 ? 'text-amber-600' : 'text-gray-500')}">
+                    Stock Left: <span>${p.stock} units ${isOut ? '🚨 OUT OF STOCK / < 12' : (p.stock <= 50 ? '⚠️ Low Stock' : '')}</span>
                   </p>
                   <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice} <span class="text-xs text-gray-400 font-normal">/ bundle</span></p>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-4">
-                  <button type="button" onclick="app.addToCart('${pIdStr}')" ${p.stock < 12 ? 'disabled' : ''} class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 disabled:bg-gray-200 disabled:text-gray-400 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95">
+                  <button type="button" onclick="app.addToCart('${pIdStr}')" ${isOut ? 'disabled' : ''} class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 disabled:bg-gray-200 disabled:text-gray-400 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95">
                     <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Add Bundle
                   </button>
-                  <button type="button" onclick="app.directBuyNow('${pIdStr}')" ${p.stock < 12 ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95">
+                  <button type="button" onclick="app.directBuyNow('${pIdStr}')" ${isOut ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer active:scale-95">
                     <i data-lucide="zap" class="w-3.5 h-3.5"></i> Buy Bundle
                   </button>
                 </div>
@@ -596,7 +617,6 @@
         if(this.currentUser && this.currentUser.role === 'Client') {
           const activeContainer = document.getElementById('client-active-orders');
           const historyContainer = document.getElementById('client-order-history');
-          
           if(activeContainer && historyContainer) {
             const myOrders = this.orders.filter(o => o.client_name === this.currentUser.full_name);
             const activeOrders = myOrders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled');
@@ -609,81 +629,122 @@
                     <span class="font-black text-xs text-indigo-950">${o.id}</span>
                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span>
                   </div>
-                  <div class="text-xs text-gray-600">Total: <b>₱${parseFloat(o.total_amount).toFixed(2)}</b> | Worker: <b>${o.assigned_worker}</b></div>
+                  <div class="text-xs text-gray-600">Total: <b>₱ ${parseFloat(o.total_amount).toFixed(2)}</b> | Worker: <b>${o.assigned_worker}</b></div>
                 </div>
               `).join('');
 
             historyContainer.innerHTML = historyOrders.length === 0 ? `<p class="text-gray-400 text-xs font-bold">No completed order history.</p>` :
               historyOrders.map(o => `
                 <div class="border rounded-2xl p-4 bg-gray-50 flex justify-between items-center">
-                  <span class="font-bold text-xs">${o.id} - ₱${parseFloat(o.total_amount).toFixed(2)}</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">${o.status}</span>
+                  <div>
+                    <span class="font-bold text-xs">${o.id} - ₱ ${parseFloat(o.total_amount).toFixed(2)}</span>
+                    <span class="text-[10px] px-2 py-0.5 ml-2 rounded-full font-bold bg-blue-100 text-blue-700">${o.status}</span>
+                  </div>
+                  <button onclick="app.deleteOrderHistory('${o.id}')" class="text-rose-600 hover:text-rose-800 font-bold text-xs px-2 py-1 bg-rose-50 rounded-lg">Delete</button>
                 </div>
               `).join('');
           }
         }
 
         const workerOrdersTable = document.getElementById('worker-orders-table');
+        const workerTitleHeading = document.getElementById('worker-title-heading');
         if(this.currentUser && this.currentUser.role.startsWith('Worker')) {
+          if(workerTitleHeading) workerTitleHeading.innerText = `${this.currentUser.role} Dashboard 🧑‍💼`;
           const workerOrders = this.orders.filter(o => o.assigned_worker === this.currentUser.role);
           if(workerOrdersTable) {
-            workerOrdersTable.innerHTML = workerOrders.length === 0 ? `<tr><td colspan="6" class="text-center p-4 text-xs font-bold text-gray-400">No orders found.</td></tr>` :
+            workerOrdersTable.innerHTML = workerOrders.length === 0 ? `<tr><td colspan="6" class="text-center p-4 text-xs font-bold text-gray-400">No assigned orders found.</td></tr>` :
               workerOrders.map(o => `
                 <tr>
                   <td class="p-3 font-bold text-xs">${o.id}</td>
                   <td class="p-3 font-semibold text-xs">${o.client_name}</td>
-                  <td class="p-3 font-black text-xs text-indigo-700">₱${parseFloat(o.total_amount).toFixed(2)}</td>
+                  <td class="p-3 font-black text-xs text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td>
                   <td class="p-3 text-xs">${o.payment_method}</td>
                   <td class="p-3"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${o.status}</span></td>
                   <td class="p-3 text-center space-x-1">
-                    ${o.status === 'Pending' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Approve</button>` : ''}
-                    ${o.status === 'Approved' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Deliver</button>` : ''}
+                    ${o.status === 'Pending' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Approve (Deduct Stock)</button>` : ''}
+                    ${o.status === 'Approved' ? `<button onclick="app.updateOrderStatus('${o.id}', 'Delivered')" class="bg-blue-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Mark Delivered</button>` : ''}
                   </td>
                 </tr>
               `).join('');
           }
+          const workerSales = workerOrders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+          const wSalesEl = document.getElementById('worker-total-sales');
+          if(wSalesEl) wSalesEl.innerText = `₱ ${workerSales.toFixed(2)}`;
         }
 
         const workerInvTable = document.getElementById('worker-inventory-table');
         if(workerInvTable && this.currentUser && this.currentUser.role.startsWith('Worker')) {
-          workerInvTable.innerHTML = this.products.map(p => `
-            <tr>
-              <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
-                <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
-                  <i data-lucide="package" class="w-4 h-4"></i>
-                </div>
-                <span>${p.name}</span>
-              </td>
-              <td class="p-3 text-xs font-bold">Bundle: ₱${p.bundle_price || p.price * 10}</td>
-              <td class="p-3 text-xs font-extrabold">${p.stock} units</td>
-              <td class="p-3 text-center">
-                <button onclick="app.workerWalkInSale('${p.id}', 'bundle')" class="bg-indigo-600 text-white text-[11px] font-bold px-2 py-1 rounded-xl">Sell Bundle</button>
-              </td>
-            </tr>
-          `).join('');
+          workerInvTable.innerHTML = this.products.map(p => {
+            const qty = this.walkInQtys[p.id] || 1;
+            const bPrice = parseFloat(p.bundle_price || p.price * 10);
+            return `
+              <tr>
+                <td class="p-3 font-semibold text-gray-800">
+                  <span>${p.name}</span>
+                  <div class="text-[10px] text-gray-500">Stock: ${p.stock} units</div>
+                </td>
+                <td class="p-3 text-xs font-bold">1pc: ₱${p.price} | Bundle: ₱${bPrice}</td>
+                <td class="p-3 text-xs font-extrabold ${p.stock <= 50 ? 'text-rose-600' : 'text-emerald-700'}">${p.stock} units ${p.stock <= 50 ? '⚠️' : ''}</td>
+                <td class="p-3">
+                  <div class="flex items-center gap-1.5">
+                    <button onclick="app.adjustWalkInQty('${p.id}', -1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg text-xs">-</button>
+                    <span class="w-8 text-center font-bold text-xs">${qty}</span>
+                    <button onclick="app.adjustWalkInQty('${p.id}', 1)" class="w-7 h-7 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs">+</button>
+                  </div>
+                </td>
+                <td class="p-3 text-center">
+                  <button onclick="app.workerWalkInSale('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow">Sell Walk-in</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
         }
 
         const ownerInvTable = document.getElementById('owner-inventory-table');
-        if(ownerInvTable && this.currentUser && this.currentUser.role === 'Owner') {
-          ownerInvTable.innerHTML = this.products.map(p => `
-            <tr>
-              <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
-                <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
-                  <i data-lucide="package" class="w-4 h-4"></i>
-                </div>
-                <span>${p.name}</span>
-              </td>
-              <td class="p-3 font-bold text-indigo-700">₱ ${parseFloat(p.price).toFixed(2)}</td>
-              <td class="p-3 font-bold text-emerald-700">₱ ${parseFloat(p.bundle_price || p.price * 10).toFixed(2)}</td>
-              <td class="p-3 text-xs font-black">${p.stock} units</td>
-              <td class="p-3 text-center">
-                <button onclick="app.openRestockModal('${p.id}', '${p.name}', ${p.price}, ${p.bundle_price || p.price * 10})" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Restock</button>
-              </td>
-            </tr>
-          `).join('');
-        }
+        const ownerW1Table = document.getElementById('owner-w1-orders-table');
+        const ownerW2Table = document.getElementById('owner-w2-orders-table');
+        const ownerTotalSales = document.getElementById('owner-total-sales');
 
+        if(this.currentUser && this.currentUser.role === 'Owner') {
+          const w1Orders = this.orders.filter(o => o.assigned_worker === 'Worker 1');
+          const w2Orders = this.orders.filter(o => o.assigned_worker === 'Worker 2');
+
+          if(ownerW1Table) {
+            ownerW1Table.innerHTML = w1Orders.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-xs text-gray-400 font-bold">No orders for Worker 1</td></tr>` :
+              w1Orders.map(o => `<tr><td class="p-3 font-bold text-xs">${o.id}</td><td class="p-3 text-xs">${o.client_name}</td><td class="p-3 text-xs font-black text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td><td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td></tr>`).join('');
+          }
+          if(ownerW2Table) {
+            ownerW2Table.innerHTML = w2Orders.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-xs text-gray-400 font-bold">No orders for Worker 2</td></tr>` :
+              w2Orders.map(o => `<tr><td class="p-3 font-bold text-xs">${o.id}</td><td class="p-3 text-xs">${o.client_name}</td><td class="p-3 text-xs font-black text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td><td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td></tr>`).join('');
+          }
+
+          const grandRev = this.orders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+          if(ownerTotalSales) ownerTotalSales.innerText = `₱ ${grandRev.toFixed(2)}`;
+
+          if(ownerInvTable) {
+            ownerInvTable.innerHTML = this.products.map(p => `
+              <tr>
+                <td class="p-3 font-semibold text-gray-800 flex items-center gap-2">
+                  <span>${p.name}</span>
+                </td>
+                <td class="p-3 font-bold text-indigo-700">₱ ${parseFloat(p.price).toFixed(2)}</td>
+                <td class="p-3 font-bold text-emerald-700">₱ ${parseFloat(p.bundle_price || p.price * 10).toFixed(2)}</td>
+                <td class="p-3 text-xs font-black ${p.stock <= 50 ? 'text-rose-600' : 'text-gray-800'}">${p.stock} units ${p.stock <= 50 ? '⚠️ Low Stock' : ''}</td>
+                <td class="p-3 text-center">
+                  <button onclick="app.openRestockModal('${p.id}', '${p.name}', ${p.price}, ${p.bundle_price || p.price * 10})" class="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Restock</button>
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
         if (typeof lucide !== 'undefined') lucide.createIcons();
+      },
+
+      adjustWalkInQty: function(prodId, delta) {
+        if (!this.walkInQtys[prodId]) this.walkInQtys[prodId] = 1;
+        this.walkInQtys[prodId] += delta;
+        if (this.walkInQtys[prodId] < 1) this.walkInQtys[prodId] = 1;
+        this.renderViews();
       },
 
       openRestockModal: function(id, name, price, bundlePrice) {
@@ -705,7 +766,6 @@
         const price = parseFloat(document.getElementById('restock-prod-price').value);
         const bundle_price = parseFloat(document.getElementById('restock-prod-bundle-price').value);
         const add_stock = parseInt(document.getElementById('restock-add-qty').value);
-
         await fetch(`${this.API_BASE_URL}/api/products/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -713,6 +773,7 @@
         });
         this.closeRestockModal();
         this.fetchServerData();
+        this.showToast('Product restocked successfully!');
       },
 
       addProduct: async function(e) {
@@ -721,7 +782,6 @@
         const price = parseFloat(document.getElementById('prod-price').value);
         const bundle_price = parseFloat(document.getElementById('prod-bundle-price').value);
         const stock = parseInt(document.getElementById('prod-stock').value);
-
         await fetch(`${this.API_BASE_URL}/api/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -729,11 +789,13 @@
         });
         e.target.reset();
         this.fetchServerData();
+        this.showToast('New product added!');
       },
 
       addToCart: function(productId) {
         const prod = this.products.find(p => String(p.id) === String(productId));
         if (!prod) return;
+        if (prod.stock < 12) return this.showToast('Out of stock or less than 12 units!');
         const existing = this.cart.find(item => String(item.product_id) === String(productId));
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
         if (existing) {
@@ -755,17 +817,14 @@
         const cartCount = document.getElementById('cart-count');
         const cartList = document.getElementById('cart-item-list');
         const cartTotal = document.getElementById('cart-total-price');
-        
         const totalItems = this.cart.reduce((sum, i) => sum + i.qty, 0);
         if(cartCount) cartCount.innerText = totalItems;
-
         if(cartList && cartTotal) {
           if(this.cart.length === 0) {
             cartList.innerHTML = `<p class="text-gray-400 text-xs text-center py-4 font-bold">Your cart is empty.</p>`;
             cartTotal.innerText = '₱ 0.00';
             return;
           }
-
           let sumTotal = 0;
           cartList.innerHTML = this.cart.map((item, idx) => {
             const itemTotal = item.price * item.qty;
@@ -774,10 +833,15 @@
               <div class="flex justify-between items-center py-2 text-xs">
                 <div>
                   <p class="font-black text-gray-800">${item.name} (${item.type})</p>
-                  <p class="text-gray-500">₱${item.price.toFixed(2)} x ${item.qty}</p>
+                  <p class="text-gray-500">₱ ${item.price.toFixed(2)}</p>
                 </div>
-                <div class="flex items-center gap-3">
-                  <span class="font-extrabold text-indigo-700">₱${itemTotal.toFixed(2)}</span>
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                    <button type="button" onclick="app.adjustCartQty(${idx}, -1)" class="w-6 h-6 bg-white font-bold rounded shadow">-</button>
+                    <span class="w-6 text-center font-bold">${item.qty}</span>
+                    <button type="button" onclick="app.adjustCartQty(${idx}, 1)" class="w-6 h-6 bg-white font-bold rounded shadow">+</button>
+                  </div>
+                  <span class="font-extrabold text-indigo-700">₱ ${itemTotal.toFixed(2)}</span>
                   <button type="button" onclick="app.removeFromCart(${idx})" class="text-rose-500 hover:text-rose-700 font-bold"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
               </div>
@@ -786,6 +850,14 @@
           cartTotal.innerText = `₱ ${sumTotal.toFixed(2)}`;
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
+      },
+
+      adjustCartQty: function(idx, delta) {
+        this.cart[idx].qty += delta;
+        if (this.cart[idx].qty < 1) {
+          this.cart.splice(idx, 1);
+        }
+        this.updateCartUI();
       },
 
       removeFromCart: function(idx) {
@@ -804,6 +876,7 @@
       directBuyNow: function(productId) {
         const prod = this.products.find(p => String(p.id) === String(productId));
         if (!prod) return;
+        if (prod.stock < 12) return this.showToast('Out of stock or less than 12 units!');
         const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
         this.activeCheckoutItems = [{
           product_id: prod.id,
@@ -828,21 +901,18 @@
         const addrText = document.getElementById('client-address-text');
         const summaryList = document.getElementById('checkout-summary-list');
         const totalPriceEl = document.getElementById('checkout-total-price');
-
         if(this.currentUser && this.currentUser.delivery_address) {
           addrContainer.classList.remove('hidden');
           addrText.innerText = this.currentUser.delivery_address;
         } else {
           addrContainer.classList.add('hidden');
         }
-
         summaryList.innerHTML = this.activeCheckoutItems.map(i => `
           <div class="flex justify-between text-xs py-1">
             <span>${i.name} (${i.qty}x Bundle)</span>
-            <span class="font-bold">₱${(i.price * i.qty).toFixed(2)}</span>
+            <span class="font-bold">₱ ${(i.price * i.qty).toFixed(2)}</span>
           </div>
         `).join('');
-
         totalPriceEl.innerText = `₱ ${totalAmount.toFixed(2)}`;
         document.getElementById('checkout-modal').classList.remove('hidden');
       },
@@ -855,14 +925,17 @@
         const assignedWorker = document.getElementById('select-worker-assign').value;
         const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
         const totalAmount = this.activeCheckoutItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
+        const generatedId = 'ORD-' + Date.now();
 
         const orderPayload = {
+          id: generatedId,
           client_name: this.currentUser.full_name,
           items: this.activeCheckoutItems,
           total_amount: totalAmount,
           assigned_worker: assignedWorker,
           payment_method: paymentMethod,
-          delivery_address: this.currentUser.delivery_address || 'Store Walk-in'
+          delivery_address: this.currentUser.delivery_address || 'Store Walk-in',
+          status: 'Pending'
         };
 
         try {
@@ -873,57 +946,71 @@
           });
           const data = await res.json();
           if(data.success) {
-            this.showToast('Order placed successfully!');
+            this.showToast('Order placed successfully! Waiting for worker approval.');
             this.cart = [];
             this.closeCheckoutModal();
             this.fetchServerData();
           } else {
             this.showToast(data.message || 'Failed to place order.');
           }
-        } catch (e) {
-          this.showToast('Server error during checkout.');
-        }
+        } catch (e) { this.showToast('Server error during checkout.'); }
       },
 
       updateOrderStatus: async function(orderId, newStatus) {
         try {
-          await fetch(`${this.API_BASE_URL}/api/orders/${orderId}`, {
+          const res = await fetch(`${this.API_BASE_URL}/api/orders/${orderId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
           });
-          this.fetchServerData();
-          this.showToast(`Order status updated to ${newStatus}`);
-        } catch(e) {
-          this.showToast('Failed to update status.');
-        }
+          const data = await res.json();
+          if(data.success) {
+            this.fetchServerData();
+            this.showToast(`Order status updated to ${newStatus}`);
+          } else {
+            this.showToast(data.message || 'Failed to update status.');
+          }
+        } catch(e) { this.showToast('Failed to update status.'); }
       },
 
-      workerWalkInSale: async function(productId, saleType) {
+      deleteOrderHistory: async function(orderId) {
+        try {
+          await fetch(`${this.API_BASE_URL}/api/orders/history/${orderId}`, { method: 'DELETE' });
+          this.fetchServerData();
+          this.showToast('Order history deleted.');
+        } catch(e) { this.showToast('Failed to delete history.'); }
+      },
+
+      workerWalkInSale: async function(productId) {
         const prod = this.products.find(p => String(p.id) === String(productId));
         if(!prod) return;
+        const qty = this.walkInQtys[prod.id] || 1;
         const price = parseFloat(prod.bundle_price || prod.price * 10);
+        const total = price * qty;
+        
+        if (prod.stock < (qty * 12)) return this.showToast('Not enough stock for this walk-in quantity!');
 
+        const generatedId = 'WALK-' + Date.now();
         const orderPayload = {
+          id: generatedId,
           client_name: 'Walk-in Customer',
-          items: [{ product_id: prod.id, name: prod.name, price: price, qty: 1, type: 'Bundle (12pcs)' }],
-          total_amount: price,
+          items: [{ product_id: prod.id, name: prod.name, price: price, qty: qty, type: 'Bundle (12pcs)' }],
+          total_amount: total,
           assigned_worker: this.currentUser.role,
           payment_method: 'Cash',
-          delivery_address: 'Walk-in Counter'
+          delivery_address: 'Walk-in Counter',
+          status: 'Delivered'
         };
 
         try {
-          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
+          await fetch(`${this.API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Delivered' })
+            body: JSON.stringify(orderPayload)
           });
-          this.showToast('Walk-in sale recorded successfully!');
+          this.showToast('Walk-in sale recorded and stock deducted!');
           this.fetchServerData();
-        } catch(e) {
-          this.showToast('Server connection error.');
-        }
+        } catch(e) { this.showToast('Server connection error.'); }
       }
     };
 
