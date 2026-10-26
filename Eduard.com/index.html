@@ -114,7 +114,7 @@
         <div id="client-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
       </div>
 
-      <!-- ACTIVE ORDERS & HISTORY SECTIONS (GI-BALIK ARON KOMPLETO) -->
+      <!-- ACTIVE ORDERS & HISTORY -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-3xl border shadow-sm">
           <h2 class="text-lg font-bold text-gray-800 mb-4">Active Orders</h2>
@@ -132,7 +132,6 @@
     </section>
   </main>
 
-  <!-- JAVASCRIPT CODE -->
   <script>
     const API_URL = 'https://eds-backend-jo6g.onrender.com';
     
@@ -195,7 +194,7 @@
           alert(data.message || 'Login failed');
         }
       } catch(err) {
-        alert('Server connection error.');
+        alert('Server connection error: ' + err.message);
       }
     }
 
@@ -355,17 +354,16 @@
           document.getElementById('cart-count').innerText = '0';
           closeCheckout();
           
-          // Refresh orders list
           const orderRes = await fetch(`${API_URL}/api/orders`);
           if(orderRes.ok) {
             orders = await orderRes.json();
             renderClientOrders();
           }
         } else {
-          alert(data.message || 'Error placing order');
+          alert('Error from server: ' + (data.message || 'Unknown error'));
         }
       } catch(e) {
-        alert('Server error');
+        alert('Catch Error details: ' + e.message);
       }
     }
   </script>
