@@ -677,10 +677,10 @@
                   <p class="text-lg font-extrabold text-indigo-600 mt-2">₱ ${bndlPrice} <span class="text-xs text-gray-400 font-normal">/ bundle</span></p>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-4">
-                  <button type="button" onclick="window.app.addToCart(${p.id})" ${p.stock < 12 ? 'disabled' : ''} class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 disabled:bg-gray-200 disabled:text-gray-400 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <button type="button" onclick="window.app.addToCart(${p.id})" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
                     <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Add Bundle
                   </button>
-                  <button type="button" onclick="window.app.directBuyNow(${p.id})" ${p.stock < 12 ? 'disabled' : ''} class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <button type="button" onclick="window.app.directBuyNow(${p.id})" class="bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
                     <i data-lucide="zap" class="w-3.5 h-3.5"></i> Buy Bundle
                   </button>
                 </div>
@@ -779,7 +779,174 @@
           `).join('');
         }
 
+        const cartCountEl = document.getElementById('cart-count');
+        if(cartCountEl) cartCountEl.innerText = this.cart.reduce((sum, item) => sum + (item.quantity / 12), 0);
+
         if (typeof lucide !== 'undefined') lucide.createIcons();
+      },
+
+      addToCart: function(prodId) {
+        const prod = this.products.find(p => p.id === prodId);
+        if(!prod) return;
+
+        const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
+        const cartItem = this.cart.find(c => c.product_id === prodId);
+        if(cartItem) {
+          cartItem.quantity += 12;
+        } else {
+          this.cart.push({ 
+            product_id: prod.id, 
+            name: `${prod.name} (Bundle (12pcs))`, 
+            price: bndlPrice, 
+            quantity: 12, 
+            maxStock: prod.stock 
+          });
+        }
+        this.showToast(`${prod.name} (Bundle) added to cart!`);
+        this.renderViews();
+      },
+
+      directBuyNow: function(prodId) {
+        const prod = this.products.find(p => p.id === prodId);
+        if(!prod) return;
+        const bndlPrice = parseFloat(prod.bundle_price || prod.price * 10);
+        this.activeCheckoutItems = [{ 
+          product_id: prod.id, 
+          name: `${prod.name} (Bundle (12pcs))`, 
+          price: bndlPrice, 
+          quantity: 12 
+        }];
+        this.showCheckoutModal();
+      },
+
+      openCartModal: function() {
+        if(this.cart.length === 0) return this.showToast('Your shopping cart is empty!');
+        const cartList = document.getElementById('cart-item-list');
+        let total = 0;
+        cartList.innerHTML = this.cart.map((item, index) => {
+          const itemTotal = item.price * (item.quantity / 12);
+          total += itemTotal;
+          return `
+            <div class="py-3 flex justify-between items-center gap-2">
+              <div class="flex-grow">
+                <p class="font-bold text-gray-800 text-xs">${item.name}</p>
+                <p class="text-[11px] text-gray-400">₱${parseFloat(item.price).toFixed(2)} x ${item.quantity / 12} bundle(s) = <span class="font-bold text-indigo-600">₱${itemTotal.toFixed(2)}</span></p>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="window.app.changeCartQty(${index}, -1)" class="w-7 h-7 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg flex items-center justify-center text-xs text-gray-700">-</button>
+                <span class="w-6 text-center text-xs font-black">${item.quantity / 12}</span>
+                <button onclick="window.app.changeCartQty(${index}, 1)" class="w-7 h-7 bg-indigo-100 hover:bg-indigo-200 font-bold rounded-lg flex items-center justify-center text-xs text-indigo-700">+</button>
+                <button onclick="window.app.removeFromCart(${index})" class="text-rose-500 hover:text-rose-700 p-1 ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        document.getElementById('cart-total-price').innerText = `₱ ${total.toFixed(2)}`;
+        document.getElementById('cart-modal').classList.remove('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      },
+
+      closeCartModal: function() {
+        document.getElementById('cart-modal').classList.add('hidden');
+      },
+
+      changeCartQty: function(index, delta) {
+        const item = this.cart[index];
+        if(!item) return;
+        const newQty = item.quantity + (delta * 12);
+        if(newQty <= 0) {
+          this.cart.splice(index, 1);
+          this.showToast('Item removed from cart.');
+        } else {
+          item.quantity = newQty;
+        }
+        this.openCartModal();
+        this.renderViews();
+      },
+
+      removeFromCart: function(index) {
+        this.cart.splice(index, 1);
+        this.openCartModal();
+        this.renderViews();
+      },
+
+      proceedToCheckoutFromCart: function() {
+        if(this.cart.length === 0) return;
+        this.activeCheckoutItems = [...this.cart];
+        this.closeCartModal();
+        this.showCheckoutModal();
+      },
+
+      showCheckoutModal: function() {
+        const summaryList = document.getElementById('checkout-summary-list');
+        const addressBox = document.getElementById('modal-delivery-address');
+        const addressText = document.getElementById('client-address-text');
+        
+        if (this.currentUser && this.currentUser.delivery_address) {
+          addressBox.classList.remove('hidden');
+          addressText.innerText = this.currentUser.delivery_address;
+        } else {
+          addressBox.classList.add('hidden');
+        }
+
+        let total = 0;
+        summaryList.innerHTML = this.activeCheckoutItems.map(item => {
+          const subtotal = item.price * (item.quantity / 12);
+          total += subtotal;
+          return `
+            <div class="py-1.5 flex justify-between items-center text-xs">
+              <span class="font-bold text-gray-700">${item.name} (${item.quantity / 12} bundle/s)</span>
+              <span class="font-black text-indigo-600">₱${subtotal.toFixed(2)}</span>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('checkout-total-price').innerText = `₱ ${total.toFixed(2)}`;
+        document.getElementById('checkout-modal').classList.remove('hidden');
+      },
+
+      closeCheckoutModal: function() {
+        document.getElementById('checkout-modal').classList.add('hidden');
+      },
+
+      confirmPayment: async function() {
+        const assigned_worker = document.getElementById('select-worker-assign').value;
+        const payment_method = document.querySelector('input[name="payment-method"]:checked').value;
+        const client_address = this.currentUser.delivery_address || 'N/A';
+
+        const total_amount = this.activeCheckoutItems.reduce((sum, item) => sum + (item.price * (item.quantity / 12)), 0);
+        const orderId = 'ORD-' + Date.now().toString().slice(-6);
+
+        const orderData = {
+          id: orderId,
+          client_name: this.currentUser.full_name,
+          client_address: client_address,
+          total_amount: total_amount,
+          payment_method: payment_method,
+          assigned_worker: assigned_worker,
+          status: 'Pending',
+          items: this.activeCheckoutItems
+        };
+
+        try {
+          const res = await fetch(`${this.API_BASE_URL}/api/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          });
+          const data = await res.json();
+          if(data.success) {
+            this.showToast(`Order placed successfully under ${assigned_worker}!`);
+            this.cart = [];
+            this.activeCheckoutItems = [];
+            this.closeCheckoutModal();
+            this.fetchServerData();
+          } else {
+            this.showToast(data.message || 'Failed to place order.');
+          }
+        } catch(e) {
+          this.showToast('Server error during checkout.');
+        }
       },
 
       openRestockModal: function(id, name, price, bundlePrice) {
