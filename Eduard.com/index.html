@@ -321,9 +321,12 @@
 
       <!-- WORKER 1 ORDERS MONITOR -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Worker 1 Orders Monitor
-        </h2>
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Worker 1 Orders Monitor & History
+          </h2>
+          <button onclick="window.app.deleteAllWorkerHistory('Worker 1')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow">Delete All W1 History</button>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase border-b font-extrabold">
@@ -332,6 +335,7 @@
                 <th class="p-3">Client</th>
                 <th class="p-3">Amount</th>
                 <th class="p-3">Status</th>
+                <th class="p-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="owner-w1-orders-table" class="divide-y"></tbody>
@@ -341,9 +345,12 @@
 
       <!-- WORKER 2 ORDERS MONITOR -->
       <div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Worker 2 Orders Monitor
-        </h2>
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+            <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i> Worker 2 Orders Monitor & History
+          </h2>
+          <button onclick="window.app.deleteAllWorkerHistory('Worker 2')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow">Delete All W2 History</button>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-indigo-50 text-indigo-900 text-xs uppercase border-b font-extrabold">
@@ -352,6 +359,7 @@
                 <th class="p-3">Client</th>
                 <th class="p-3">Amount</th>
                 <th class="p-3">Status</th>
+                <th class="p-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody id="owner-w2-orders-table" class="divide-y"></tbody>
@@ -640,7 +648,6 @@
                     <span class="font-bold text-xs">${o.id} - ₱ ${parseFloat(o.total_amount).toFixed(2)}</span>
                     <span class="text-[10px] px-2 py-0.5 ml-2 rounded-full font-bold bg-blue-100 text-blue-700">${o.status}</span>
                   </div>
-                  <button onclick="app.deleteOrderHistory('${o.id}')" class="text-rose-600 hover:text-rose-800 font-bold text-xs px-2 py-1 bg-rose-50 rounded-lg">Delete</button>
                 </div>
               `).join('');
           }
@@ -710,12 +717,32 @@
           const w2Orders = this.orders.filter(o => o.assigned_worker === 'Worker 2');
 
           if(ownerW1Table) {
-            ownerW1Table.innerHTML = w1Orders.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-xs text-gray-400 font-bold">No orders for Worker 1</td></tr>` :
-              w1Orders.map(o => `<tr><td class="p-3 font-bold text-xs">${o.id}</td><td class="p-3 text-xs">${o.client_name}</td><td class="p-3 text-xs font-black text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td><td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td></tr>`).join('');
+            ownerW1Table.innerHTML = w1Orders.length === 0 ? `<tr><td colspan="5" class="text-center p-3 text-xs text-gray-400 font-bold">No orders for Worker 1</td></tr>` :
+              w1Orders.map(o => `
+                <tr>
+                  <td class="p-3 font-bold text-xs">${o.id}</td>
+                  <td class="p-3 text-xs">${o.client_name}</td>
+                  <td class="p-3 text-xs font-black text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td>
+                  <td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td>
+                  <td class="p-3 text-center">
+                    <button onclick="app.deleteOrderHistory('${o.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-[11px] font-bold px-2.5 py-1 rounded-xl">Delete</button>
+                  </td>
+                </tr>
+              `).join('');
           }
           if(ownerW2Table) {
-            ownerW2Table.innerHTML = w2Orders.length === 0 ? `<tr><td colspan="4" class="text-center p-3 text-xs text-gray-400 font-bold">No orders for Worker 2</td></tr>` :
-              w2Orders.map(o => `<tr><td class="p-3 font-bold text-xs">${o.id}</td><td class="p-3 text-xs">${o.client_name}</td><td class="p-3 text-xs font-black text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td><td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td></tr>`).join('');
+            ownerW2Table.innerHTML = w2Orders.length === 0 ? `<tr><td colspan="5" class="text-center p-3 text-xs text-gray-400 font-bold">No orders for Worker 2</td></tr>` :
+              w2Orders.map(o => `
+                <tr>
+                  <td class="p-3 font-bold text-xs">${o.id}</td>
+                  <td class="p-3 text-xs">${o.client_name}</td>
+                  <td class="p-3 text-xs font-black text-indigo-700">₱ ${parseFloat(o.total_amount).toFixed(2)}</td>
+                  <td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${o.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${o.status}</span></td>
+                  <td class="p-3 text-center">
+                    <button onclick="app.deleteOrderHistory('${o.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-[11px] font-bold px-2.5 py-1 rounded-xl">Delete</button>
+                  </td>
+                </tr>
+              `).join('');
           }
 
           const grandRev = this.orders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
@@ -979,6 +1006,14 @@
           this.fetchServerData();
           this.showToast('Order history deleted.');
         } catch(e) { this.showToast('Failed to delete history.'); }
+      },
+
+      deleteAllWorkerHistory: async function(workerName) {
+        try {
+          await fetch(`${this.API_BASE_URL}/api/orders/worker-history/${encodeURIComponent(workerName)}`, { method: 'DELETE' });
+          this.fetchServerData();
+          this.showToast(`All history for ${workerName} deleted.`);
+        } catch(e) { this.showToast('Failed to delete worker history.'); }
       },
 
       workerWalkInSale: async function(productId) {

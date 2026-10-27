@@ -163,7 +163,6 @@ app.post('/api/orders', async (req, res) => {
       [id, client_name, client_address, total_amount, payment_method, assigned_worker, status || 'Pending', JSON.stringify(items)]
     );
     
-    // If walk-in sale (status Delivered on creation), deduct stock immediately
     if (status === 'Delivered' && items) {
       let parsedItems = items;
       if (typeof parsedItems === 'string') {
@@ -196,7 +195,6 @@ app.put('/api/orders/:id/status', async (req, res) => {
     }
     const order = orderRes.rows[0];
     
-    // Deduct stock only when worker approves from Pending
     if (order.status === 'Pending' && status === 'Approved') {
       let items = order.items;
       if (typeof items === 'string') {
@@ -220,10 +218,22 @@ app.put('/api/orders/:id/status', async (req, res) => {
   }
 });
 
+// Delete specific order history (Owner control)
 app.delete('/api/orders/history/:id', async (req, res) => {
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM orders WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Delete all order history for a specific worker (Owner control)
+app.delete('/api/orders/worker-history/:workerName', async (req, res) => {
+  const { workerName } = req.params;
+  try {
+    await pool.query('DELETE FROM orders WHERE assigned_worker = $1', [decodeURIComponent(workerName)]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
