@@ -1,246 +1,254 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-const app = express();
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// PostgreSQL Connection Pool using Render's DATABASE_URL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    full_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    worker_choice VARCHAR(50),
-    delivery_address TEXT
-  );
+// Initialize Database Tables
+const initDb = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        worker_choice VARCHAR(50),
+        delivery_address TEXT
+      );
 
-  CREATE TABLE IF NOT EXISTS products (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    bundle_price DECIMAL(10,2),
-    bundle_qty INT DEFAULT 12,
-    stock INT NOT NULL,
-    sold_units INT DEFAULT 0,
-    image_url TEXT
-  );
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        price NUMERIC(10, 2) NOT NULL,
+        bundle_price NUMERIC(10, 2),
+        bundle_qty INTEGER DEFAULT 12,
+        stock INTEGER NOT NULL
+      );
 
-  CREATE TABLE IF NOT EXISTS orders (
-    id VARCHAR(50) PRIMARY KEY,
-    client_name VARCHAR(255) NOT NULL,
-    client_address TEXT,
-    total_amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(50),
-    assigned_worker VARCHAR(50),
-    status VARCHAR(50) DEFAULT 'Pending',
-    items JSONB,
-    created_at TIMESTAMP DEFAULT NOW()
-  );
-`).then(async () => {
-  await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS worker_choice VARCHAR(50);');
-  await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS delivery_address TEXT;');
-  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS bundle_price DECIMAL(10,2);');
-  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT;');
-  await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS items JSONB;');
-  console.log('Database verified successfully.');
-}).catch(err => console.log('DB Setup Error:', err.message));
+      CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR(50) PRIMARY KEY,
+        client_name VARCHAR(255) NOT NULL,
+        items JSONB NOT NULL,
+        total_amount NUMERIC(10, 2) NOT NULL,
+        assigned_worker VARCHAR(50),
+        payment_method VARCHAR(50),
+        delivery_address TEXT,
+        status VARCHAR(50) DEFAULT 'Pending'
+      );
+    `);
+    console.log("Database tables initialized successfully.");
+  } catch (err) {
+    console.error("Error initializing database tables:", err);
+  }
+};
 
+initDb();
+
+// --- API ROUTES ---
+
+// Role Status Check (To limit Owner to 1 and Workers to 2)
 app.get('/api/role-status', async (req, res) => {
   try {
-    const usersRes = await pool.query('SELECT role, worker_choice FROM users');
-    let ownerTaken = false;
+    const ownerRes = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
+    const workerRes = await pool.query("SELECT * FROM users WHERE role LIKE 'Worker%'");
+    
     let worker1Taken = false;
     let worker2Taken = false;
-    usersRes.rows.forEach(u => {
-      if (u.role === 'Owner') ownerTaken = true;
-      if (u.role === 'Worker 1' || u.worker_choice === 'Worker 1') worker1Taken = true;
-      if (u.role === 'Worker 2' || u.worker_choice === 'Worker 2') worker2Taken = true;
+    
+    workerRes.rows.forEach(w => {
+      if (w.worker_choice === 'Worker 1' || w.role === 'Worker 1') worker1Taken = true;
+      if (w.worker_choice === 'Worker 2' || w.role === 'Worker 2') worker2Taken = true;
     });
-    res.json({ ownerTaken, worker1Taken, worker2Taken });
+    
+    res.json({
+      ownerTaken: ownerRes.rows.length > 0,
+      worker1Taken,
+      worker2Taken
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Register User
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
-    let finalRole = role;
     if (role === 'Owner') {
       const ownerCheck = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
       if (ownerCheck.rows.length > 0) {
-        return res.status(400).json({ success: false, message: 'Naa na nay Owner ang sistema!' });
+        return res.status(400).json({ success: false, message: 'Owner account already exists!' });
       }
     }
-    if (role === 'Worker') {
-      finalRole = worker_choice || 'Worker 1';
-      const workerCheck = await pool.query("SELECT * FROM users WHERE role = $1", [finalRole]);
-      if (workerCheck.rows.length > 0) {
-        return res.status(400).json({ success: false, message: `${finalRole} kay taken na!` });
-      }
-    }
+    
+    const assignedRole = role === 'Worker' ? worker_choice : role;
+    
     const newUser = await pool.query(
-      'INSERT INTO users (full_name, email, password, role, worker_choice, delivery_address) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [full_name, email, password, finalRole, worker_choice || null, delivery_address || null]
+      `INSERT INTO users (full_name, email, password, role, worker_choice, delivery_address) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [full_name, email, password, assignedRole, worker_choice || null, delivery_address || null]
     );
-    res.json({ success: true, message: 'Account registered successfully!', user: newUser.rows[0] });
+    
+    res.json({ success: true, message: 'Registration successful!', user: newUser.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: 'Email already registered or invalid data.' });
   }
 });
 
+// Login User
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const userRes = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
-    if (userRes.rows.length === 0) {
-      return res.status(400).json({ success: false, message: 'Invalid email or password.' });
+    const result = await pool.query("SELECT * FROM users WHERE email = $1 AND password = $2", [email, password]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
-    res.json({ success: true, user: userRes.rows[0] });
+    res.json({ success: true, user: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// Get All Products
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await pool.query('SELECT * FROM products ORDER BY id ASC');
-    res.json(products.rows);
+    const result = await pool.query("SELECT * FROM products ORDER BY id ASC");
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Add Product (Owner)
 app.post('/api/products', async (req, res) => {
-  const { name, price, bundle_price, stock, image_url } = req.body;
+  const { name, price, bundle_price, bundle_qty, stock } = req.body;
   try {
-    const newProd = await pool.query(
-      'INSERT INTO products (name, price, bundle_price, bundle_qty, stock, image_url) VALUES ($1, $2, $3, 12, $4, $5) RETURNING *',
-      [name, price, bundle_price, stock, image_url || null]
+    const result = await pool.query(
+      `INSERT INTO products (name, price, bundle_price, bundle_qty, stock) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [name, price, bundle_price || price * 12, bundle_qty || 12, stock]
     );
-    res.json({ success: true, product: newProd.rows[0] });
+    res.json({ success: true, product: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// Update / Restock Product
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
   const { price, bundle_price, add_stock } = req.body;
   try {
-    await pool.query(
-      'UPDATE products SET price = $1, bundle_price = $2, stock = stock + $3 WHERE id = $4',
-      [price, bundle_price, add_stock || 0, id]
+    const current = await pool.query("SELECT stock FROM products WHERE id = $1", [id]);
+    if (current.rows.length === 0) return res.status(404).json({ success: false, message: 'Product not found' });
+    
+    const newStock = current.rows[0].stock + (parseInt(add_stock) || 0);
+    
+    const result = await pool.query(
+      `UPDATE products SET price = $1, bundle_price = $2, stock = $3 WHERE id = $4 RETURNING *`,
+      [price, bundle_price, newStock, id]
     );
-    res.json({ success: true });
+    res.json({ success: true, product: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// Get All Orders
 app.get('/api/orders', async (req, res) => {
   try {
-    const orders = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
-    res.json(orders.rows);
+    const result = await pool.query("SELECT * FROM orders ORDER BY id DESC");
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Create Order / Walk-in Sale
 app.post('/api/orders', async (req, res) => {
-  const { id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items } = req.body;
+  const { id, client_name, items, total_amount, assigned_worker, payment_method, delivery_address, status } = req.body;
   try {
-    await pool.query(
-      'INSERT INTO orders (id, client_name, client_address, total_amount, payment_method, assigned_worker, status, items, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())',
-      [id, client_name, client_address, total_amount, payment_method, assigned_worker, status || 'Pending', JSON.stringify(items)]
-    );
-    
-    if (status === 'Delivered' && items) {
-      let parsedItems = items;
-      if (typeof parsedItems === 'string') {
-        try { parsedItems = JSON.parse(parsedItems); } catch (e) {}
-      }
-      if (Array.isArray(parsedItems)) {
-        for (let item of parsedItems) {
-          const qtyDeduct = (item.qty || 1) * 12;
-          await pool.query(
-            'UPDATE products SET stock = stock - $1, sold_units = COALESCE(sold_units, 0) + $1 WHERE id = $2',
-            [qtyDeduct, item.product_id]
-          );
-        }
+    // If status is Delivered instantly (Walk-in), deduct stock immediately
+    if (status === 'Delivered') {
+      for (let item of items) {
+        const deductQty = item.qty * 12; // Bundle is 12pcs
+        await pool.query("UPDATE products SET stock = stock - $1 WHERE id = $2", [deductQty, item.product_id]);
       }
     }
     
-    res.json({ success: true });
+    const result = await pool.query(
+      `INSERT INTO orders (id, client_name, items, total_amount, assigned_worker, payment_method, delivery_address, status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [id, client_name, JSON.stringify(items), total_amount, assigned_worker, payment_method, delivery_address, status || 'Pending']
+    );
+    res.json({ success: true, order: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// Update Order Status (Worker approval deducts stock)
 app.put('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   try {
-    const orderRes = await pool.query('SELECT * FROM orders WHERE id = $1', [id]);
-    if (orderRes.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Order not found!' });
-    }
-    const order = orderRes.rows[0];
+    const orderQuery = await pool.query("SELECT * FROM orders WHERE id = $1", [id]);
+    if (orderQuery.rows.length === 0) return res.status(404).json({ success: false, message: 'Order not found' });
     
+    const order = orderQuery.rows[0];
+    
+    // If changing from Pending to Approved, deduct stock
     if (order.status === 'Pending' && status === 'Approved') {
-      let items = order.items;
-      if (typeof items === 'string') {
-        try { items = JSON.parse(items); } catch (e) {}
-      }
-      if (items && Array.isArray(items)) {
-        for (let item of items) {
-          const qtyDeduct = (item.qty || 1) * 12;
-          await pool.query(
-            'UPDATE products SET stock = stock - $1, sold_units = COALESCE(sold_units, 0) + $1 WHERE id = $2',
-            [qtyDeduct, item.product_id]
-          );
-        }
+      const items = order.items;
+      for (let item of items) {
+        const deductQty = item.qty * 12;
+        await pool.query("UPDATE products SET stock = stock - $1 WHERE id = $2", [deductQty, item.product_id]);
       }
     }
     
-    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
-    res.json({ success: true, message: `Order updated to ${status}!` });
+    const result = await pool.query("UPDATE orders SET status = $1 WHERE id = $2 RETURNING *", [status, id]);
+    res.json({ success: true, order: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Delete specific order history (Owner control)
+// Delete Single Order History
 app.delete('/api/orders/history/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM orders WHERE id = $1', [id]);
-    res.json({ success: true });
+    await pool.query("DELETE FROM orders WHERE id = $1", [id]);
+    res.json({ success: true, message: 'Order history deleted.' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Delete all order history for a specific worker (Owner control)
+// Delete All Worker History
 app.delete('/api/orders/worker-history/:workerName', async (req, res) => {
   const { workerName } = req.params;
   try {
-    await pool.query('DELETE FROM orders WHERE assigned_worker = $1', [decodeURIComponent(workerName)]);
-    res.json({ success: true });
+    await pool.query("DELETE FROM orders WHERE assigned_worker = $1", [decodeURIComponent(workerName)]);
+    res.json({ success: true, message: 'Worker history cleared.' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
