@@ -61,7 +61,20 @@ initDb();
 
 // --- API ROUTES ---
 
-// Temporary cleanup route para sa duplicate workers
+// Wipe Database Route (Para malimpyo ug mawala ang tanang sulod - blangko tanan)
+app.get('/api/wipe-database', async (req, res) => {
+  try {
+    await pool.query("DELETE FROM orders;");
+    await pool.query("DELETE FROM products;");
+    await pool.query("DELETE FROM users;");
+    
+    res.json({ success: true, message: 'Na-wipe na ang tibuok database! Puros blangko na ug walay nahabilin.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Temporary cleanup route para sa duplicate workers (optional)
 app.get('/api/cleanup-workers', async (req, res) => {
   try {
     await pool.query(`
@@ -108,7 +121,7 @@ app.get('/api/role-status', async (req, res) => {
   }
 });
 
-// Register User (Strict 1 account max)
+// Register User (Strict 1 account max for Owner, Worker 1, and Worker 2)
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
