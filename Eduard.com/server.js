@@ -61,7 +61,30 @@ initDb();
 
 // --- API ROUTES ---
 
-// Role Status Check (To limit Owner to 1 and Workers to 1 each)
+// Temporary cleanup route para sa duplicate workers
+app.get('/api/cleanup-workers', async (req, res) => {
+  try {
+    await pool.query(`
+      DELETE FROM users 
+      WHERE id NOT IN (
+        SELECT MIN(id) FROM users WHERE role = 'Worker 1' GROUP BY role
+      ) AND role = 'Worker 1';
+    `);
+    
+    await pool.query(`
+      DELETE FROM users 
+      WHERE id NOT IN (
+        SELECT MIN(id) FROM users WHERE role = 'Worker 2' GROUP BY role
+      ) AND role = 'Worker 2';
+    `);
+    
+    res.json({ success: true, message: 'Na-cleanup na ang mga dobleng workers! Usa na lang kada role ang nabilin.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Role Status Check
 app.get('/api/role-status', async (req, res) => {
   try {
     const ownerRes = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
@@ -85,7 +108,7 @@ app.get('/api/role-status', async (req, res) => {
   }
 });
 
-// Register User (Strict 1 account max for Owner, Worker 1, and Worker 2)
+// Register User (Strict 1 account max)
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
@@ -207,7 +230,7 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// Update Order Status (Worker approval deducts stock)
+// Update Order Status
 app.put('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
