@@ -61,7 +61,7 @@ initDb();
 
 // --- API ROUTES ---
 
-// Role Status Check (To limit Owner to 1 and Workers to 2)
+// Role Status Check (To limit Owner to 1 and Workers to 1 each)
 app.get('/api/role-status', async (req, res) => {
   try {
     const ownerRes = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
@@ -85,7 +85,7 @@ app.get('/api/role-status', async (req, res) => {
   }
 });
 
-// Register User
+// Register User (Strict 1 account max for Owner, Worker 1, and Worker 2)
 app.post('/api/register', async (req, res) => {
   const { full_name, email, password, role, worker_choice, delivery_address } = req.body;
   try {
@@ -93,6 +93,13 @@ app.post('/api/register', async (req, res) => {
       const ownerCheck = await pool.query("SELECT * FROM users WHERE role = 'Owner'");
       if (ownerCheck.rows.length > 0) {
         return res.status(400).json({ success: false, message: 'Owner account already exists!' });
+      }
+    }
+    
+    if (role === 'Worker' && worker_choice) {
+      const workerCheck = await pool.query("SELECT * FROM users WHERE role = $1", [worker_choice]);
+      if (workerCheck.rows.length > 0) {
+        return res.status(400).json({ success: false, message: `${worker_choice} is already taken!` });
       }
     }
     
@@ -182,10 +189,9 @@ app.get('/api/orders', async (req, res) => {
 app.post('/api/orders', async (req, res) => {
   const { id, client_name, items, total_amount, assigned_worker, payment_method, delivery_address, status } = req.body;
   try {
-    // If status is Delivered instantly (Walk-in), deduct stock immediately
     if (status === 'Delivered') {
       for (let item of items) {
-        const deductQty = item.qty * 12; // Bundle is 12pcs
+        const deductQty = item.qty * 12;
         await pool.query("UPDATE products SET stock = stock - $1 WHERE id = $2", [deductQty, item.product_id]);
       }
     }
@@ -211,7 +217,6 @@ app.put('/api/orders/:id/status', async (req, res) => {
     
     const order = orderQuery.rows[0];
     
-    // If changing from Pending to Approved, deduct stock
     if (order.status === 'Pending' && status === 'Approved') {
       const items = order.items;
       for (let item of items) {
